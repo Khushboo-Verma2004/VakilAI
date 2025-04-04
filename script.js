@@ -1,4 +1,5 @@
-// public/script.js
+let currentDocumentText = '';
+let chatHistory = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
@@ -10,6 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const documentTypeDisplay = document.getElementById('document-type');
     const documentPreview = document.getElementById('document-preview');
     const analysisSidebar = document.getElementById('analysis-sidebar');
+    const mainLanguageSelector = document.getElementById('main-language');
+
+    // Initialize Chatbot
+    initializeChatbot();
 
     // Drag and Drop Handlers
     if (uploadContainer) {
@@ -38,6 +43,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (fileInput) {
         fileInput.addEventListener('change', handleFileUpload);
+    }
+
+    // Language Selector
+    if (mainLanguageSelector) {
+        mainLanguageSelector.addEventListener('change', function() {
+            alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
+        });
     }
 
     // Main File Upload Function
@@ -84,13 +96,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to detect if text is in Hindi (Devanagari script) - for formatting
+    // Text Processing Functions
     function isHindi(text) {
         const hindiRegex = /[\u0900-\u097F]/;
         return hindiRegex.test(text);
     }
 
-    // Function to format the extracted text
     function formatDocumentText(text, docType) {
         if (!text) return "<p>No text extracted from the document.</p>";
 
@@ -101,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let inOrderSection = false;
             lines.forEach((line, index) => {
                 line = line.trim();
-                if (isHindi(line)) return; // Skip Hindi lines for now
+                if (isHindi(line)) return;
                 if (index === 0 && line.toUpperCase().includes("COURT")) {
                     formattedHtml += `<h4 style="color: gold; font-weight: bold;">${line}</h4>`;
                 } else if (line.toLowerCase().startsWith("case no")) {
@@ -141,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return formattedHtml;
     }
 
-    // Function to parse analysis and create color-coded HTML
     function parseAnalysis(analysis) {
         const lines = analysis.split('\n');
         let html = '';
@@ -163,23 +173,92 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
 
-    // Download clause analysis as PDF
-    function downloadAnalysisAsPDF(analysisText) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(12);
-        doc.text("Clause Analysis Report", 10, 10);
-        const lines = analysisText.split('\n');
-        let yPosition = 20;
-        lines.forEach(line => {
-            if (yPosition > 280) {
-                doc.addPage();
-                yPosition = 10;
+    // Chatbot Functions
+    function initializeChatbot() {
+        const toggleBtn = document.getElementById('toggle-chatbot');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', toggleChatbot);
+        }
+    }
+
+    function setupChatbot(documentText) {
+        currentDocumentText = documentText;
+        chatHistory = [];
+        
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+        const chatbotInput = document.getElementById('chatbot-input-field');
+        const chatbotSend = document.getElementById('chatbot-send');
+        const closeChatbot = document.getElementById('close-chatbot');
+
+        // Show chatbot
+        chatbotContainer.classList.remove('chatbot-hidden');
+        chatbotContainer.classList.add('chatbot-visible');
+
+        // Add welcome message
+        addBotMessage("Hello! I'm your VakilAI assistant. Ask me anything about the document you just uploaded.");
+
+        // Event listeners
+        chatbotSend.addEventListener('click', sendMessage);
+        chatbotInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
+        closeChatbot.addEventListener('click', () => toggleChatbot(false));
+
+        async function sendMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+
+            addUserMessage(message);
+            chatbotInput.value = '';
+
+            try {
+                const response = await fetch('/chatbot-query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: message,
+                        documentText: currentDocumentText,
+                        history: chatHistory
+                    })
+                });
+
+                const data = await response.json();
+                addBotMessage(data.answer);
+                chatHistory.push({role: 'assistant', content: data.answer});
+            } catch (error) {
+                console.error('Chatbot error:', error);
+                addBotMessage("Sorry, I'm having trouble answering that. Please try again.");
             }
-            doc.text(line, 10, yPosition);
-            yPosition += 10;
-        });
-        doc.save('clause-analysis-report.pdf');
+        }
+
+        function addUserMessage(message) {
+            chatHistory.push({role: 'user', content: message});
+            addMessage(message, 'user-message');
+        }
+
+        function addBotMessage(message) {
+            addMessage(message, 'bot-message');
+        }
+
+        function addMessage(message, className) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message', className);
+            messageDiv.textContent = message;
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+    }
+
+    function toggleChatbot(show = null) {
+        const chatbot = document.getElementById('chatbot-container');
+        const shouldShow = show !== null ? show : chatbot.classList.contains('chatbot-hidden');
+        
+        if (shouldShow) {
+            chatbot.classList.remove('chatbot-hidden');
+            chatbot.classList.add('chatbot-visible');
+        } else {
+            chatbot.classList.remove('chatbot-visible');
+            chatbot.classList.add('chatbot-hidden');
+        }
     }
 
     // Display Analysis Results
@@ -231,76 +310,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            // Add PDF download functionality
-            document.getElementById('download-pdf').addEventListener('click', async function() {
-                try {
-                    // Show loading state
-                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-                    this.disabled = true;
-                    
-                    // Get all analysis data
-                    const analysisData = {
-                        analysis: document.querySelector('.analysis-sidebar').innerText,
-                        summary: document.getElementById('summary-content').innerText,
-                        documentType: documentTypeDisplay.textContent,
-                        language: document.getElementById('main-language').value
-                    };
-
-                    // Call backend to generate PDF
-                    const response = await fetch('/generate-pdf', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(analysisData)
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`Server responded with status ${response.status}`);
-                    }
-
-                    // Create download link
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'vakilai-legal-analysis.pdf';
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    // Clean up
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    }, 100);
-                    
-                } catch (error) {
-                    console.error('PDF download failed:', error);
-                    alert('Failed to generate PDF. Please try again.');
-                } finally {
-                    // Reset button state
-                    const btn = document.getElementById('download-pdf');
-                    if (btn) {
-                        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download Analysis';
-                        btn.disabled = false;
-                    }
-                }
-            });
-
-            // Add voice functionality
-            const voiceBtn = document.querySelector('.voice-btn');
-            voiceBtn.addEventListener('click', function() {
-                const lang = this.getAttribute('data-lang');
-                const summaryText = document.getElementById('summary-content').textContent;
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(summaryText);
-                    utterance.lang = lang === 'hi' ? 'hi-IN' : lang === 'ta' ? 'ta-IN' : lang === 'te' ? 'te-IN' : 'en-US';
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    alert('Text-to-speech not supported in your browser');
-                }
-            });
+            // Set up event listeners
+            setupPdfDownload();
+            setupVoiceButton();
         }
+
+        // Initialize chatbot with document text
+        setupChatbot(result.text);
 
         // Show analysis section
         if (analysisContainer) {
@@ -313,120 +329,74 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fileInfo.textContent = result.message || 'Processing complete';
     }
-    // Add this to your existing script.js
-document.getElementById('download-pdf').addEventListener('click', async function() {
-    try {
-        // Get all the analysis data
-        const analysisText = document.querySelector('.analysis-sidebar').innerText;
-        const summaryText = summaryContent.innerText;
-        const docType = documentType.textContent;
-        const language = mainLanguageSelector.value;
-        
-        // Show loading state
-        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-        this.disabled = true;
-        
-        // Send data to server to generate PDF
-        const response = await fetch('/generate-pdf', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                analysis: analysisText,
-                summary: summaryText,
-                documentType: docType,
-                language: language
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to generate PDF');
-        }
-        
-        // Get the PDF blob
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        
-        // Create download link
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'vakilai-legal-analysis.pdf';
-        document.body.appendChild(a);
-        a.click();
-        
-        // Clean up
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-    } catch (error) {
-        console.error('Error downloading PDF:', error);
-        alert('Failed to download PDF: ' + error.message);
-    } finally {
-        // Reset button
-        this.innerHTML = '<i class="fas fa-file-pdf"></i> Download Analysis';
-        this.disabled = false;
-    }
-});
-// Add this to your existing script.js
-document.getElementById('download-pdf')?.addEventListener('click', async function() {
-    const btn = this;
-    try {
-        // Show loading state
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-        btn.disabled = true;
-        
-        // Get all analysis data
-        const analysisData = {
-            analysis: document.querySelector('.analysis-sidebar').innerText,
-            summary: document.getElementById('summary-content').innerText,
-            documentType: document.getElementById('document-type').textContent,
-            language: document.getElementById('main-language').value
-        };
 
-        // Call backend to generate PDF
-        const response = await fetch('/generate-pdf', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(analysisData)
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to generate PDF');
-        }
+    function setupPdfDownload() {
+        const downloadBtn = document.getElementById('download-pdf');
+        if (!downloadBtn) return;
 
-        // Create download link
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'vakilai-legal-analysis.pdf';
-        document.body.appendChild(a);
-        a.click();
-        
-        // Clean up
-        setTimeout(() => {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }, 100);
-        
-    } catch (error) {
-        console.error('PDF Download Error:', error);
-        alert(`PDF generation failed: ${error.message}`);
-    } finally {
-        // Reset button state
-        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download Analysis';
-        btn.disabled = false;
+        downloadBtn.addEventListener('click', async function() {
+            const btn = this;
+            try {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.disabled = true;
+                
+                const analysisData = {
+                    analysis: document.querySelector('.analysis-sidebar').innerText,
+                    summary: document.getElementById('summary-content').innerText,
+                    documentType: documentTypeDisplay.textContent,
+                    language: mainLanguageSelector.value
+                };
+
+                const response = await fetch('/generate-pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(analysisData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate PDF');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'vakilai-legal-analysis.pdf';
+                document.body.appendChild(a);
+                a.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+                
+            } catch (error) {
+                console.error('PDF Download Error:', error);
+                alert(`PDF generation failed: ${error.message}`);
+            } finally {
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download Analysis';
+                btn.disabled = false;
+            }
+        });
     }
-});
-    // Main Language Selector (retained from original code)
-    const mainLanguageSelector = document.getElementById('main-language');
-    if (mainLanguageSelector) {
-        mainLanguageSelector.addEventListener('change', function() {
-            alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
+
+    function setupVoiceButton() {
+        const voiceBtn = document.querySelector('.voice-btn');
+        if (!voiceBtn) return;
+
+        voiceBtn.addEventListener('click', function() {
+            const lang = this.getAttribute('data-lang');
+            const summaryText = document.getElementById('summary-content').textContent;
+            
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(summaryText);
+                utterance.lang = lang === 'hi' ? 'hi-IN' : 
+                                  lang === 'ta' ? 'ta-IN' : 
+                                  lang === 'te' ? 'te-IN' : 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Text-to-speech not supported in your browser');
+            }
         });
     }
 });
