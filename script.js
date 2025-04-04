@@ -1,3 +1,5 @@
+// public/script.js
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
     const uploadContainer = document.getElementById('upload-container');
@@ -468,43 +470,154 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
 
-    // Main Language Selector
-    const mainLanguageSelector = document.getElementById('main-language');
-    if (mainLanguageSelector) {
-        mainLanguageSelector.addEventListener('change', function() {
-            alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
+// Download clause analysis as PDF
+function downloadAnalysisAsPDF(analysisText) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(12);
+    doc.text("Clause Analysis Report", 10, 10);
+    const lines = analysisText.split('\n');
+    let yPosition = 20;
+    lines.forEach(line => {
+        if (yPosition > 280) {
+            doc.addPage();
+            yPosition = 10;
+        }
+        doc.text(line, 10, yPosition);
+        yPosition += 10;
+    });
+    doc.save('clause-analysis-report.pdf');
+}
+
+// Display Analysis Results
+function displayAnalysis(result) {
+    console.log("Received Result:", result);
+
+    // Update document type and language
+    if (documentTypeDisplay) {
+        documentTypeDisplay.textContent = `Document Type: ${result.type || 'Not Detected'} | Language: ${result.language_name || 'Unknown'} (${result.language_code || 'unknown'})`;
+    }
+
+    // Update document preview
+    if (documentPreview) {
+        const formattedText = formatDocumentText(result.text, result.type);
+        documentPreview.innerHTML = `
+            <div class="document-content">
+                <h3>${result.type || 'Unknown Document'}</h3>
+                <div class="extracted-text">
+                ${formattedText}
+                </div>
+            </div>
+        `;
+    }
+
+    // Update analysis sidebar with clause analysis, summary, and download button
+    if (analysisSidebar) {
+        const parsedAnalysis = parseAnalysis(result.analysis);
+        analysisSidebar.innerHTML = `
+            <h3>Clause Analysis</h3>
+            ${parsedAnalysis || '<p>No analysis available.</p>'}
+            <button class="action-btn" onclick="downloadAnalysisAsPDF('${result.analysis.replace(/'/g, "\\'")}')">Download PDF <i class="fas fa-download"></i></button>
+            <div class="summary-section">
+                <h3>Document Summary</h3>
+                <div class="language-toggle">
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="hi">Hindi</button>
+                    <button class="lang-btn" data-lang="ta">Tamil</button>
+                    <button class="lang-btn" data-lang="te">Telugu</button>
+                </div>
+                <div id="summary-content" class="summary-content">
+                    <pre>${result.summary || 'No summary available.'}</pre>
+                </div>
+                <button class="voice-btn" data-lang="en">
+                    <i class="fas fa-volume-up"></i> Read Summary
+                </button>
+            </div>
+        `;
+
+        // Add language toggle functionality
+        const langBtns = document.querySelectorAll('.lang-btn');
+        const summaryContent = document.getElementById('summary-content');
+        langBtns.forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const lang = this.getAttribute('data-lang');
+                langBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                // Fetch summary in the selected language
+                const response = await fetch('/generate-summary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: result.text, languageCode: lang })
+                });
+                const data = await response.json();
+                summaryContent.innerHTML = `<pre>${data.summary || 'No summary available.'}</pre>`;
+            });
+        });
+
+        // Add voice functionality
+        const voiceBtn = document.querySelector('.voice-btn');
+        voiceBtn.addEventListener('click', function () {
+            const lang = document.querySelector('.lang-btn.active').getAttribute('data-lang');
+            const summaryText = summaryContent.textContent;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(summaryText);
+                utterance.lang = lang === 'hi' ? 'hi-IN' : lang === 'ta' ? 'ta-IN' : lang === 'te' ? 'te-IN' : 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Text-to-speech not supported in your browser');
+            }
         });
     }
 
-    // About Us Modal functionality
-    const aboutLink = document.querySelector('footer a[href="#about"]');
-    const modal = document.getElementById('about-modal');
-    const closeModal = document.querySelector('.close-modal');
-    
-    if (aboutLink && modal && closeModal) {
-        aboutLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        });
-        
-        closeModal.addEventListener('click', function() {
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-        });
-        
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-        });
-        
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modal.classList.contains('show')) {
-                modal.classList.remove('show');
-                document.body.style.overflow = '';
-            }
+    // Show analysis section
+    if (analysisContainer) {
+        analysisContainer.style.display = 'block';
+        window.scrollTo({
+            top: analysisContainer.offsetTop,
+            behavior: 'smooth'
         });
     }
-});
+
+    fileInfo.textContent = result.message || 'Processing complete';
+}
+
+// Main Language Selector
+const mainLanguageSelector = document.getElementById('main-language');
+if (mainLanguageSelector) {
+    mainLanguageSelector.addEventListener('change', function () {
+        alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
+    });
+}
+
+// About Us Modal functionality
+const aboutLink = document.querySelector('footer a[href="#about"]');
+const modal = document.getElementById('about-modal');
+const closeModal = document.querySelector('.close-modal');
+
+if (aboutLink && modal && closeModal) {
+    aboutLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    });
+
+    closeModal.addEventListener('click', function () {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    });
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    });
+}
