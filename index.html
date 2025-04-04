@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VakilAI - AI-Powered Legal Document Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="Free AI tool to analyze legal documents in 22 Indian languages with accessibility support">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&family=Noto+Sans+Telugu:wght@400;700&family=Noto+Sans+Gujarati:wght@400;700&family=Noto+Sans+Kannada:wght@400;700&family=Noto+Sans+Malayalam:wght@400;700&family=Noto+Sans+Oriya:wght@400;700&family=Noto+Sans+Gurmukhi:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header role="banner">
+        <div class="navbar">
+            <div class="logo" role="img" aria-label="VakilAI Logo">
+                <i class="fas fa-balance-scale" aria-hidden="true"></i>
+                VakilAI
+            </div>
+            <nav aria-label="Main navigation">
+                <div class="nav-links">
+                    <a href="#home" aria-current="page" data-translate="nav.home">Home</a>
+                    <a href="#how-it-works" data-translate="nav.how_it_works">How It Works</a>
+                    <a href="#resources" data-translate="nav.resources">Legal Resources</a>
+                    <select class="language-selector" id="main-language" aria-label="Select interface language">
+                        <option value="en">English</option>
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="bn">বাংলা (Bengali)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                        <option value="gu">ગુજરાતી (Gujarati)</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                        <option value="ml">മലയാളം (Malayalam)</option>
+                        <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="or">ଓଡ଼ିଆ (Odia)</option>
+                        <option value="as">অসমীয়া (Assamese)</option>
+                        <option value="sa">संस्कृतम् (Sanskrit)</option>
+                        <option value="ks">کٲشُر (Kashmiri)</option>
+                        <option value="ne">नेपाली (Nepali)</option>
+                        <option value="sd">सिन्धी (Sindhi)</option>
+                        <option value="ur">اردو (Urdu)</option>
+                        <option value="kok">कोंकणी (Konkani)</option>
+                        <option value="mni">ꯃꯤꯇꯩꯂꯣꯟ (Manipuri)</option>
+                        <option value="doi">डोगरी (Dogri)</option>
+                        <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+                        <option value="brx">बड़ो (Bodo)</option>
+                        <option value="mai">मैथिली (Maithili)</option>
+                    </select>
+                </div>
+            </nav>
+            <button class="mobile-menu-btn" aria-label="Mobile menu" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <main id="main-content" role="main">
+        <section id="home" class="hero" aria-labelledby="hero-heading">
+            <div class="hero-sec">
+                <h1 id="hero-heading" data-translate="hero.title">AI-Powered Legal Document Assistant</h1>
+                <p class="hero-subtitle" data-translate="hero.subtitle">Get instant analysis of your contracts in 22 Indian languages with accessible explanations</p>
+            </div>
+            
+            <div class="upload-container" id="upload-container" role="region" aria-labelledby="upload-heading">
+                <div class="upload-icon" aria-hidden="true">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <h2 id="upload-heading" data-translate="upload.title">Upload Your Legal Document</h2>
+                <button class="upload-btn" id="upload-btn" aria-describedby="upload-instructions">
+                    <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i> <span data-translate="upload.button">Select File</span>
+                </button>
+                <input type="file" id="file-input" accept=".pdf,.docx,.jpg,.jpeg,.png" aria-labelledby="upload-heading" style="display: none;">
+                <div class="file-info" id="file-info" data-translate="upload.formats">Supports PDF, DOCX, JPG, PNG (Max 10MB)</div>
+                <div id="loading-indicator" class="loading-indicator" role="alert" aria-live="polite" style="display: none;">
+                    <span class="sr-only" data-translate="upload.processing">Processing document</span>
+                    <div class="spinner" aria-hidden="true"></div>
+                </div>
+                <div id="error-display" class="error-display" role="alert" aria-live="assertive"></div>
+            </div>
+        </section>
+
+        <section class="features" aria-labelledby="features-heading">
+            <h2 id="features-heading" class="sr-only" data-translate="features.title">Key Features</h2>
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">
+                    <i class="fas fa-language"></i>
+                </div>
+                <h3 data-translate="features.multilingual.title">Multilingual Support</h3>
+                <p data-translate="features.multilingual.description">Analyze documents in English and 22 Indian languages with vernacular explanations and voice output.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 data-translate="features.clause.title">Smart Clause Detection</h3>
+                <p data-translate="features.clause.description">Identifies illegal, unfair, and standard clauses with color-coded highlights and IPC references.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 data-translate="features.actions.title">Instant Legal Actions</h3>
+                <p data-translate="features.actions.description">Generate legal notices, find free lawyers, and get step-by-step guidance for your specific issue.</p>
+            </div>
+        </section>
+        
+        <section id="analysis-container" class="analysis-container" aria-labelledby="analysis-heading" style="display: none;">
+            <h2 id="analysis-heading" data-translate="analysis.title">Document Analysis</h2>
+            <p id="document-type" data-translate="analysis.analyzing">Analyzing: <span id="doc-type-name"></span></p>
+            
+            <div class="document-viewer">
+                <div class="document-preview" id="document-preview" role="document" aria-labelledby="preview-heading" tabindex="0">
+                    <h3 id="preview-heading" class="sr-only" data-translate="analysis.preview">Document Preview</h3>
+                    <div id="document-content" class="document-content">
+                        <!--Here stuff will be added by Ai-->
+                    </div>
+                </div>
+                
+                <div class="analysis-sidebar" id="analysis-sidebar" role="complementary" aria-labelledby="sidebar-heading">
+                    <h3 id="sidebar-heading" data-translate="analysis.clause_analysis">Clause Analysis</h3>
+                    <p data-translate="analysis.click_instructions">Click on highlighted clauses to view details</p>
+                    
+                    <div id="clause-details-container">
+                        <!--And the same thing here-->
+                    </div>
+                    
+                    <div class="summary-section">
+                        <h3 data-translate="analysis.summary">Document Summary</h3>
+                        <div class="language-toggle">
+                            <!--Same thing here -->
+                        </div>
+                        
+                        <div id="summary-container">
+                            <!-- Summaries will be shown by AI -->
+                        </div>
+                        
+                        <div class="actions">
+                            <button class="action-btn"><i class="fas fa-whatsapp" aria-hidden="true"></i> <span data-translate="analysis.share">Share via WhatsApp</span></button>
+                            <button class="action-btn"><i class="fas fa-download" aria-hidden="true"></i> <span data-translate="analysis.download">Download Report</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="footer-content">
+            <div class="logo" role="img" aria-label="VakilAI Logo">
+                <i class="fas fa-balance-scale" aria-hidden="true"></i>
+                VakilAI
+            </div>
+            <p data-translate="footer.tagline">Democratizing legal access through AI technology</p>
+            <div class="footer-links" role="navigation" aria-label="Footer navigation">
+                <a href="#about" data-translate="footer.about">About Us</a>
+                <a href="#contact" data-translate="footer.contact">Contact</a>
+            </div>
+            <div class="language-links" role="navigation" aria-label="Language selection">
+                <h3 data-translate="footer.available">Available in:</h3>
+                <div class="language-grid" id="footer-languages">
+                    <!-- AI will populate this based on supported languages -->
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
