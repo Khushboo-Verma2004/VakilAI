@@ -6,11 +6,25 @@ const PDFExtract = require('pdf.js-extract').PDFExtract;
 const Tesseract = require('tesseract.js');
 const mammoth = require('mammoth');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const pdf = require('html-pdf'); // Single declaration at the top
 require('dotenv').config();
 
 // Initialize Express app
 const app = express();
 const port = 3000;
+
+// PDF generation options (moved up with other configurations)
+const pdfOptions = {
+  format: 'A4',
+  orientation: 'portrait',
+  border: {
+    top: '0.5in',
+    right: '0.5in',
+    bottom: '0.5in',
+    left: '0.5in'
+  },
+  timeout: 60000 // 60 seconds timeout
+};
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
@@ -51,7 +65,14 @@ if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY not found in environment variables');
 }
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
+const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash-latest",
+    systemInstruction: {
+      role: "system",
+      content: "You are VakilAI, a legal assistant specializing in Indian law. Provide accurate, concise analysis with IPC references where applicable."
+    },
+    temperature: 0.3
+});
 
 // Document Types
 const DOCUMENT_TYPES = [
@@ -64,7 +85,8 @@ const DOCUMENT_TYPES = [
     "Other Legal Document"
 ];
 
-// Extract text from different file types
+// [Keep all your existing functions here: extractText, extractTextFromPDF, etc.]
+// These should remain exactly the same as in your original file
 async function extractText(filePath) {
     const ext = path.extname(filePath).toLowerCase();
 
@@ -176,6 +198,38 @@ async function analyzeDocument(text, languageCode = "en") {
     }
 }
 
+async function generateDocumentSummary(text, languageCode = "en") {
+    const prompt = `
+    You are a legal AI assistant. Analyze the following legal document and generate a concise summary in the language corresponding to the language code '${languageCode}' (e.g., 'en' for English, 'hi' for Hindi, 'ta' for Tamil). If the language code is 'unknown', default to English.
+
+    The summary should include:
+    - Overall Risk: High/Medium/Low (mention the number of risky clauses and unfair terms, if any)
+    - Key Issues: A bullet list of 3-5 key issues or risky clauses
+    - Tenant Responsibilities: A short description of responsibilities imposed on the tenant (if applicable)
+
+    Format the summary as follows:
+    OVERALL RISK: [High/Medium/Low] ([X risky clauses, Y unfair terms])
+    KEY ISSUES:
+    - [Issue 1]
+    - [Issue 2]
+    - [Issue 3]
+    TENANT RESPONSIBLE FOR: [Description of tenant responsibilities]
+
+    Document Text:
+    ${text.slice(0, 10000)}
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const summary = result.response.text();
+        console.log(`Generated Summary (${languageCode}):`, summary);
+        return summary;
+    } catch (error) {
+        console.error(`Summary generation failed for language ${languageCode}: ${error.message}`);
+        throw new Error(`Failed to generate summary: ${error.message}`);
+    }
+}
+
 // Process Document Route
 app.post('/process-document', upload.single('document'), async (req, res) => {
     if (!req.file) {
@@ -186,29 +240,23 @@ app.post('/process-document', upload.single('document'), async (req, res) => {
     const fileName = req.file.originalname;
 
     try {
-        // Step 1: Extract text
         const text = await extractText(filePath);
         if (!text) {
             throw new Error('No text could be extracted from the document');
         }
 
-        // Step 2: Detect language
         const language = await detectLanguage(text);
         const [languageCode, languageName] = language.includes(' (') 
             ? language.split(' (') 
             : [language, 'Unknown'];
         const cleanedLanguageName = languageName.replace(')', '');
 
-        // Step 3: Detect document type
         const docType = await detectDocumentType(text);
-
-        // Step 4: Analyze the document
         const analysis = await analyzeDocument(text, languageCode);
+        const summary = await generateDocumentSummary(text, languageCode);
 
-        // Clean up: Remove the temporary file
         fs.unlinkSync(filePath);
 
-        // Send response
         res.json({
             status: 'success',
             type: docType,
@@ -216,16 +264,134 @@ app.post('/process-document', upload.single('document'), async (req, res) => {
             language_name: cleanedLanguageName,
             text: text,
             analysis: analysis,
+            summary: summary,
             file_name: fileName,
             message: `Document processed and analyzed successfully. Type: ${docType}, Language: ${cleanedLanguageName}`
         });
     } catch (error) {
-        // Clean up in case of error
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
         res.status(500).json({ status: 'error', message: error.message });
     }
+});
+
+// Endpoint for generating summary in different languages
+app.post('/generate-summary', express.json(), async (req, res) => {
+    const { text, languageCode } = req.body;
+    if (!text || !languageCode) {
+        return res.status(400).json({ error: 'Missing required fields: text and languageCode are required' });
+    }
+
+    try {
+        const summary = await generateDocumentSummary(text, languageCode);
+        res.status(200).json({ summary });
+    } catch (error) {
+        res.status(500).json({ error: `Failed to generate summary: ${error.message}` });
+    }
+});
+
+// Single PDF generation endpoint
+app.post('/generate-pdf', express.json(), async (req, res) => {
+    try {
+        const { analysis, summary, documentType, language } = req.body;
+        
+        if (!analysis || !summary) {
+            return res.status(400).json({ 
+                status: 'error',
+                message: 'Missing required fields: analysis and summary are required'
+            });
+        }
+
+        const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>VakilAI Legal Analysis</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.5; color: #333; }
+                .header { color: #4a6fa5; text-align: center; margin-bottom: 20px; }
+                .section { margin-bottom: 25px; }
+                h1 { font-size: 22px; }
+                h2 { font-size: 18px; color: #166088; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+                .danger { color: #d64045; font-weight: bold; }
+                .warning { color: #ff9f1c; }
+                .safe { color: #2e933c; }
+                pre { 
+                    white-space: pre-wrap; 
+                    background: #f8f9fa; 
+                    padding: 15px; 
+                    border-radius: 5px;
+                    border-left: 4px solid #4a6fa5;
+                }
+                .footer { 
+                    margin-top: 30px;
+                    text-align: center;
+                    font-size: 12px;
+                    color: #666;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>VakilAI Legal Document Analysis Report</h1>
+            </div>
+            
+            <div class="section">
+                <h2>Document Information</h2>
+                <p><strong>Type:</strong> ${documentType || 'Not specified'}</p>
+                <p><strong>Language:</strong> ${language || 'Not detected'}</p>
+                <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+            </div>
+            
+            <div class="section">
+                <h2>Detailed Analysis</h2>
+                <pre>${analysis}</pre>
+            </div>
+            
+            <div class="section">
+                <h2>Executive Summary</h2>
+                <pre>${summary}</pre>
+            </div>
+            
+            <div class="footer">
+                <p>Generated by VakilAI - AI-Powered Legal Assistant</p>
+            </div>
+        </body>
+        </html>
+        `;
+
+        pdf.create(htmlContent, pdfOptions).toBuffer((err, buffer) => {
+            if (err) {
+                console.error('PDF Generation Error:', err);
+                return res.status(500).json({ 
+                    status: 'error',
+                    message: 'Failed to generate PDF document',
+                    error: err.message 
+                });
+            }
+            
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename="vakilai-legal-analysis.pdf"');
+            res.setHeader('Content-Length', buffer.length);
+            res.send(buffer);
+        });
+
+    } catch (error) {
+        console.error('PDF Endpoint Error:', error);
+        res.status(500).json({ 
+            status: 'error',
+            message: 'Internal server error during PDF generation',
+            error: error.message 
+        });
+    }
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start the server
