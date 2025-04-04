@@ -1,3 +1,5 @@
+// public/script.js
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
     const uploadContainer = document.getElementById('upload-container');
@@ -29,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
 
     // File Selection Handler
     if (uploadBtn) {
@@ -162,6 +163,25 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
 
+    // Download clause analysis as PDF
+    function downloadAnalysisAsPDF(analysisText) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(12);
+        doc.text("Clause Analysis Report", 10, 10);
+        const lines = analysisText.split('\n');
+        let yPosition = 20;
+        lines.forEach(line => {
+            if (yPosition > 280) {
+                doc.addPage();
+                yPosition = 10;
+            }
+            doc.text(line, 10, yPosition);
+            yPosition += 10;
+        });
+        doc.save('clause-analysis-report.pdf');
+    }
+
     // Display Analysis Results
     function displayAnalysis(result) {
         console.log("Received Result:", result);
@@ -178,19 +198,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="document-content">
                     <h3>${result.type || 'Unknown Document'}</h3>
                     <div class="extracted-text">
-                        ${formattedText}
+                    ${formattedText}
                     </div>
                 </div>
             `;
         }
 
-        // Update analysis sidebar
+        // Update analysis sidebar with clause analysis, summary, and download button
         if (analysisSidebar) {
             const parsedAnalysis = parseAnalysis(result.analysis);
             analysisSidebar.innerHTML = `
                 <h3>Clause Analysis</h3>
                 ${parsedAnalysis || '<p>No analysis available.</p>'}
+                <button class="action-btn" onclick="downloadAnalysisAsPDF('${result.analysis.replace(/'/g, "\\'")}')">Download PDF <i class="fas fa-download"></i></button>
+                <div class="summary-section">
+                    <h3>Document Summary</h3>
+                    <div class="language-toggle">
+                        <button class="lang-btn active" data-lang="en">English</button>
+                        <button class="lang-btn" data-lang="hi">Hindi</button>
+                        <button class="lang-btn" data-lang="ta">Tamil</button>
+                        <button class="lang-btn" data-lang="te">Telugu</button>
+                    </div>
+                    <div id="summary-content" class="summary-content">
+                        <pre>${result.summary || 'No summary available.'}</pre>
+                    </div>
+                    <button class="voice-btn" data-lang="en">
+                        <i class="fas fa-volume-up"></i> Read Summary
+                    </button>
+                </div>
             `;
+
+            // Add language toggle functionality
+            const langBtns = document.querySelectorAll('.lang-btn');
+            const summaryContent = document.getElementById('summary-content');
+            langBtns.forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const lang = this.getAttribute('data-lang');
+                    langBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Fetch summary in the selected language
+                    const response = await fetch('/generate-summary', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: result.text, languageCode: lang })
+                    });
+                    const data = await response.json();
+                    summaryContent.innerHTML = `<pre>${data.summary || 'No summary available.'}</pre>`;
+                });
+            });
+
+            // Add voice functionality
+            const voiceBtn = document.querySelector('.voice-btn');
+            voiceBtn.addEventListener('click', function() {
+                const lang = document.querySelector('.lang-btn.active').getAttribute('data-lang');
+                const summaryText = summaryContent.textContent;
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(summaryText);
+                    utterance.lang = lang === 'hi' ? 'hi-IN' : lang === 'ta' ? 'ta-IN' : lang === 'te' ? 'te-IN' : 'en-US';
+                    window.speechSynthesis.speak(utterance);
+                } else {
+                    alert('Text-to-speech not supported in your browser');
+                }
+            });
         }
 
         // Show analysis section
@@ -205,45 +275,11 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInfo.textContent = result.message || 'Processing complete';
     }
 
-    // Language Toggle for Summary (existing functionality retained)
-    const langBtns = document.querySelectorAll('.lang-btn');
-    const summaries = {
-        'en': document.getElementById('english-summary'),
-        'hi': document.getElementById('hindi-summary')
-    };
-
-    langBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const lang = this.getAttribute('data-lang');
-            langBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            for (const [key, summary] of Object.entries(summaries)) {
-                summary.style.display = key === lang ? 'block' : 'none';
-            }
-        });
-    });
-
-    // Voice Output Demo
-    const voiceBtns = document.querySelectorAll('.voice-btn');
-    voiceBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const lang = this.getAttribute('data-lang');
-            const summary = summaries[lang];
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(summary.textContent);
-                utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-US';
-                window.speechSynthesis.speak(utterance);
-            } else {
-                alert('Text-to-speech not supported in your browser');
-            }
-        });
-    });
-
-        // Main Language Selector
-        // Main Language Selector
-        // Main Language Selector
+    // Main Language Selector (retained from original code)
     const mainLanguageSelector = document.getElementById('main-language');
-    mainLanguageSelector.addEventListener('change', function() {
-    alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
-    });
-});           
+    if (mainLanguageSelector) {
+        mainLanguageSelector.addEventListener('change', function() {
+            alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
+        });
+    }
+});
