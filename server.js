@@ -387,7 +387,34 @@ app.post('/generate-pdf', express.json(), async (req, res) => {
         });
     }
 });
+// Add this endpoint to server.js
+app.post('/chatbot-query', express.json(), async (req, res) => {
+    try {
+        const { question, documentText, history } = req.body;
+        
+        const prompt = `
+        You are VakilAI, a legal assistant chatbot. The user has uploaded a document with the following content:
+        ${documentText.slice(0, 10000)}  // Limit context size
+        
+        Conversation history:
+        ${history.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+        
+        Current question: ${question}
+        
+        Provide a concise, helpful answer based on the document content and conversation history.
+        Focus on legal aspects and be precise with your answers.
+        If you reference specific clauses, mention their section numbers if available.
+        `;
 
+        const result = await model.generateContent(prompt);
+        const answer = result.response.text();
+        
+        res.json({ answer });
+    } catch (error) {
+        console.error('Chatbot error:', error);
+        res.status(500).json({ error: 'Failed to process chatbot query' });
+    }
+});
 // Global error handler
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
