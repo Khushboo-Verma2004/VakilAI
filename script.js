@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+
     // File Selection Handler
     if (uploadBtn) {
         uploadBtn.addEventListener('click', () => fileInput.click());
@@ -238,9 +239,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Main Language Selector
+        // Main Language Selector
+        // Main Language Selector
+        // Main Language Selector
     const mainLanguageSelector = document.getElementById('main-language');
     mainLanguageSelector.addEventListener('change', function() {
-        alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
+    alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
     });
-});
+});           
