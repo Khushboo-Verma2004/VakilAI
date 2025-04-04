@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.addEventListener('change', handleFileUpload);
     }
 
-    // Main File Upload Function
+    // Main File Upload Function (Client-side only version)
     async function handleFileUpload() {
         const file = fileInput.files[0];
         if (!file) {
@@ -56,21 +56,21 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
         try {
-            const formData = new FormData();
-            formData.append('document', file);
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
-            const response = await fetch('/process-document', {
-                method: 'POST',
-                body: formData
-            });
+            // Client-side processing
+            const result = {
+                status: 'success',
+                type: detectDocumentType(file.name),
+                language_name: 'English',
+                language_code: 'en',
+                text: await extractTextFromFile(file),
+                analysis: generateMockAnalysis(file.name),
+                message: 'Document processed successfully'
+            };
 
-            const result = await response.json();
-            console.log("Server Response:", result);
-
-            if (result.status === 'error') {
-                throw new Error(result.message);
-            }
-
+            console.log("Processing Result:", result);
             displayAnalysis(result);
             
         } catch (error) {
@@ -82,7 +82,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to detect if text is in Hindi (Devanagari script) - for formatting
+    // Helper function to detect document type
+    function detectDocumentType(filename) {
+        if (filename.toLowerCase().includes('court') || filename.toLowerCase().includes('order')) {
+            return "Court Order";
+        } else if (filename.toLowerCase().includes('rental') || filename.toLowerCase().includes('lease')) {
+            return "Rental Agreement";
+        } else {
+            return "General Document";
+        }
+    }
+
+    // Helper function to extract text
+    async function extractTextFromFile(file) {
+        if (file.type === "application/pdf") {
+            // Simple mock for PDF - in real implementation you'd use PDF.js
+            return "Mock extracted text from PDF.\n\nThis is a sample court order.\nCase No: 12345\nPlaintiff: John Doe vs. Defendant: Jane Smith\n\nORDER\n1. The defendant must appear in court.\n2. The plaintiff's request is granted.";
+        } else if (file.type === "text/plain") {
+            return await file.text();
+        } else {
+            return "Text extraction not supported for this file type.";
+        }
+    }
+
+    // Helper function to generate mock analysis
+    function generateMockAnalysis(filename) {
+        return `
+⚠️ Missing notarization clause in ${filename}.
+✅ All parties' names are clearly mentioned.
+❗ Clause 7 has ambiguous language about penalties.
+✅ Termination conditions are clearly defined.
+        `;
+    }
+
+    // Function to detect if text is in Hindi (Devanagari script)
     function isHindi(text) {
         const hindiRegex = /[\u0900-\u097F]/;
         return hindiRegex.test(text);
@@ -99,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let inOrderSection = false;
             lines.forEach((line, index) => {
                 line = line.trim();
-                if (isHindi(line)) return; // Skip Hindi lines for now
+                if (isHindi(line)) return;
                 if (index === 0 && line.toUpperCase().includes("COURT")) {
                     formattedHtml += `<h4 style="color: gold; font-weight: bold;">${line}</h4>`;
                 } else if (line.toLowerCase().startsWith("case no")) {
@@ -204,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInfo.textContent = result.message || 'Processing complete';
     }
 
-    // Language Toggle for Summary (existing functionality retained)
+    // Language Toggle for Summary
     const langBtns = document.querySelectorAll('.lang-btn');
     const summaries = {
         'en': document.getElementById('english-summary'),
