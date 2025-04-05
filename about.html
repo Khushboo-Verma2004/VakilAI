@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VakilAI - About Us</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Base Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Header (Black Background) */
+        header {
+            background: #1a1a1a;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        header .logo i {
+            margin-right: 0.5rem;
+        }
+
+        .nav-links a {
+            color: white;
+            margin: 0 1rem;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        /* Footer Consistency */
+        footer {
+            background: linear-gradient(90deg, #6b48ff, #af69ef);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        footer .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .footer-links a {
+            color: white;
+            margin: 0 1rem;
+            text-decoration: none;
+        }
+
+        /* About Hero Section */
+        .about-hero {
+            height: 500px;
+            width: 100%;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: linear-gradient(90deg, #6b48ff, #af69ef);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .about-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .about-hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Section Styles */
+        .section {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            color: #6b48ff;
+            margin-bottom: 2rem;
+            text-align: center;
+            animation: slideUp 1s ease-out;
+        }
+
+        /* Card Styles */
+        .card {
+            background: linear-gradient(135deg, #e6e0ff, #f0eaff);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 800px;
+            margin: 1rem auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            text-align: center;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card p {
+            color: #555;
+        }
+
+        /* Team Section */
+        .team-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .team-card {
+            background: linear-gradient(135deg, #e6e0ff, #f0eaff);
+            border-radius: 15px;
+            padding: 1.5rem;
+            width: 250px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.4s ease;
+            animation: fadeInUp 1s ease-out 0.5s backwards;
+        }
+
+        .team-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .team-card img {
+            width: 150px; /* Increased from 100px to 150px */
+            height: 150px; /* Increased from 100px to 150px */
+            border-radius: 50%;
+            margin-bottom: 1rem;
+        }
+
+        /* Card Image Styles */
+        .card img {
+            width: 100%; /* Increased width to 100% of card */
+            height: 200px; /* Decreased height from auto to 200px */
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (Black Background) -->
+    <header>
+        <div class="logo">
+            <i class="fas fa-balance-scale"></i>
+            VakilAI
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="#">How It Works</a>
+            <a href="#">Document Types</a>
+            <a href="#">Legal Resources</a>
+        </div>
+    </header>
+
+    <!-- About Hero Section -->
+    <section class="about-hero">
+        <h1>About Us</h1>
+        <p>Discover the story behind VakilAI, your trusted AI-powered legal assistant, and how we’re revolutionizing legal access in India.</p>
+        <div class="pulse"><i class="fas fa-info-circle animated-icon" style="font-size: 3rem; color: white;"></i></div>
+    </section>
+
+    <!-- Our Story Section -->
+    <section class="section">
+        <h2>Our Story</h2>
+        <div class="card">
+            <img src="public\legal.jpg" alt="Lady Justice" style="width: 100%; height: 200px; border-radius: 10px; object-fit: cover;">
+            <p>Founded in 2025, VakilAI was born out of a simple observation: legal documents are unnecessarily complex and inaccessible to most Indians. Our team of legal experts and AI engineers came together to bridge this gap. What started as a small project to analyze rental agreements has now grown into a comprehensive platform supporting 22 Indian languages and all major document types. Today, we serve thousands of users across India, helping them understand their legal rights and obligations with clarity and confidence.</p>
+        </div>
+    </section>
+
+    <!-- Our Mission Section -->
+    <section class="section">
+        <h2>Our Mission</h2>
+        <div class="card">
+            <img src="public\tech1.jpg" alt="People with Documents" style="width: 100%; height: 200px; border-radius: 10px; object-fit: cover;">
+            <p>To empower every Indian with instant, accurate, and understandable legal analysis in their native language, breaking down barriers to legal access and ensuring no one signs a document they don’t fully understand.</p>
+        </div>
+    </section>
+
+    <!-- Meet Our Team Section -->
+    <section class="section">
+        <h2>Meet Our Team</h2>
+        <div class="team-cards">
+            <div class="team-card">
+                <img src="public/avatar.png" alt="Anshika Chaudhary" class="animated-icon">
+                <h3>Anshika Chaudhary</h3>
+                <p></p>
+            </div>
+            <div class="team-card">
+                <img src="public/avatar.png" alt="Khushbu Verma" class="animated-icon">
+                <h3>Khushbu Verma</h3>
+                <p></p>
+            </div>
+            <div class="team-card">
+                <img src="public/avatar.png" alt="Manasvi Singh" class="animated-icon">
+                <h3>Manasvi Singh</h3>
+                <p></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer (Same as index.html) -->
+    <footer>
+        <div class="logo">
+            <i class="fas fa-balance-scale"></i>
+            VakilAI
+        </div>
+        <p>Democratizing legal access through AI technology</p>
+        <div class="footer-links">
+            <a href="#">About Us</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact</a>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Dynamic pulse effect on hero icon and team images
+        const animatedIcons = document.querySelectorAll('.animated-icon');
+        animatedIcons.forEach(icon => {
+            setInterval(() => {
+                icon.classList.toggle('pulse');
+            }, 2000);
+        });
+
+        // Hover effect for team cards
+        const teamCards = document.querySelectorAll('.team-card');
+        teamCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.background = 'linear-gradient(135deg, #d4c4fb, #e8d8ff)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.background = 'linear-gradient(135deg, #e6e0ff, #f0eaff)';
+            });
+        });
+    </script>
+</body>
+</html>
