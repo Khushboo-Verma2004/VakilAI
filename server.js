@@ -10,7 +10,15 @@ const pdf = require('html-pdf');
 require('dotenv').config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+
+// Serve static files from root directory
+app.use(express.static(__dirname));
+
+// Default route - send index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const pdfOptions = {
   format: 'A4',
@@ -52,8 +60,6 @@ const upload = multer({
         }
     }
 });
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 if (!GEMINI_API_KEY) {
@@ -411,5 +417,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server running on port ${port}`);
 });
