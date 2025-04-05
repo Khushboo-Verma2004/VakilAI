@@ -1,4 +1,5 @@
-// public/script.js
+let currentDocumentText = '';
+let chatHistory = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
@@ -10,8 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const documentTypeDisplay = document.getElementById('document-type');
     const documentPreview = document.getElementById('document-preview');
     const analysisSidebar = document.getElementById('analysis-sidebar');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    const errorDisplay = document.getElementById('error-display');
+    const mainLanguageSelector = document.getElementById('main-language');
+
+    // Initialize Chatbot
+    initializeChatbot();
 
     // Drag and Drop Handlers
     if (uploadContainer) {
@@ -42,7 +45,14 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.addEventListener('change', handleFileUpload);
     }
 
-    // Main File Upload Function with AI Analysis
+    // Language Selector
+    if (mainLanguageSelector) {
+        mainLanguageSelector.addEventListener('change', function() {
+            alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
+        });
+    }
+
+    // Main File Upload Function
     async function handleFileUpload() {
         const file = fileInput.files[0];
         if (!file) {
@@ -51,349 +61,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (file.size > 10 * 1024 * 1024) {
-            showError('Error: File size exceeds 10MB limit');
+            fileInfo.textContent = 'Error: File size exceeds 10MB limit';
             return;
         }
 
-        // Show loading state
+        fileInfo.textContent = `Processing: ${file.name}...`;
         uploadBtn.disabled = true;
         uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        loadingIndicator.style.display = 'block';
-        errorDisplay.style.display = 'none';
-        fileInfo.textContent = `Processing: ${file.name}...`;
 
         try {
-            // First extract text from the file
-            const extractedText = await extractTextFromFile(file);
-            
-            // Then send to AI for analysis
-            const analysisResult = await analyzeDocumentWithAI(extractedText, file.name);
-            
-            // Display the results
-            displayAnalysis({
-                status: 'success',
-                type: analysisResult.document_type || detectDocumentType(file.name),
-                language_name: analysisResult.language || 'English',
-                language_code: analysisResult.language_code || 'en',
-                text: extractedText,
-                analysis: analysisResult.analysis,
-                clauses: analysisResult.clauses,
-                summary: analysisResult.summary,
-                message: 'Document processed successfully'
+            const formData = new FormData();
+            formData.append('document', file);
+
+            const response = await fetch('/process-document', {
+                method: 'POST',
+                body: formData
             });
+
+            const result = await response.json();
+            console.log("Server Response:", result);
+
+            if (result.status === 'error') {
+                throw new Error(result.message);
+            }
+
+            displayAnalysis(result);
             
         } catch (error) {
+            fileInfo.textContent = `Error: ${error.message}`;
             console.error('Processing error:', error);
-            showError(`Error: ${error.message}`);
         } finally {
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Select File';
-            loadingIndicator.style.display = 'none';
         }
     }
 
-    function showError(message) {
-        errorDisplay.textContent = message;
-        errorDisplay.style.display = 'block';
-        fileInfo.textContent = 'Upload failed';
+    // Text Processing Functions
+    function isHindi(text) {
+        const hindiRegex = /[\u0900-\u097F]/;
+        return hindiRegex.test(text);
     }
 
-    // Helper function to detect document type
-    function detectDocumentType(filename) {
-        const lowerName = filename.toLowerCase();
-        if (lowerName.includes('court') || lowerName.includes('order') || lowerName.includes('judgment')) {
-            return "Court Order";
-        } else if (lowerName.includes('rental') || lowerName.includes('lease')) {
-            return "Rental Agreement";
-        } else if (lowerName.includes('contract') || lowerName.includes('agreement')) {
-            return "Contract";
-        } else if (lowerName.includes('will') || lowerName.includes('testament')) {
-            return "Will/Testament";
-        } else {
-            return "Legal Document";
-        }
-    }
-
-    // Helper function to extract text
-    async function extractTextFromFile(file) {
-        // In a real implementation, you would use:
-        // - PDF.js for PDFs
-        // - Office.js or similar for Word docs
-        // - OCR for images
-        
-        // For demo purposes, we'll simulate text extraction
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                if (file.type === "application/pdf") {
-                    resolve("Sample Legal Document\n\nParties:\n1. John Doe (Plaintiff)\n2. Jane Smith (Defendant)\n\nTerms:\n1. The defendant shall pay $1000 per month.\n2. This agreement is valid for 12 months.\n3. Early termination requires 30 days notice.\n\nSignatures:\n___________________\n___________________");
-                } else {
-                    resolve("This is a sample text extracted from the uploaded document.\n\nImportant clauses:\n- Payment terms\n- Termination conditions\n- Liability limitations");
-                }
-            }, 500);
-        });
-    }
-
-    // Function to call AI analysis API
-    async function analyzeDocumentWithAI(text, filename) {
-        // In a real implementation, this would call your backend API
-        // which would then call an AI service like OpenAI, Anthropic, etc.
-        
-        // For demo purposes, we'll simulate an API response
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const docType = detectDocumentType(filename);
-                const isContract = docType.includes('Agreement') || docType.includes('Contract');
-                
-                resolve({
-                    document_type: docType,
-                    language: 'English',
-                    language_code: 'en',
-                    analysis: generateAIAnalysis(text, isContract),
-                    clauses: identifyKeyClauses(text, isContract),
-                    summary: generateSummary(text, isContract)
-                });
-            }, 1500);
-        });
-    }
-
-    // AI-generated analysis (simulated)
-    function generateAIAnalysis(text, isContract) {
-        const issues = [];
-        
-        if (text.includes('termination') && !text.includes('notice period')) {
-            issues.push("⚠️ Termination clause missing notice period requirement");
-        }
-        
-        if (text.includes('$') && !text.includes('payment terms')) {
-            issues.push("❗ Payment amount specified but no clear payment terms");
-        }
-        
-        if (text.includes('indemnify') || text.includes('liable')) {
-            issues.push("⚠️ Liability clause detected - review carefully");
-        }
-        
-        if (isContract && !text.includes('governing law')) {
-            issues.push("❗ Governing law clause not found");
-        }
-        
-        if (text.includes('signature')) {
-            issues.push("✅ Signature section properly included");
-        } else {
-            issues.push("⚠️ Signature section missing");
-        }
-        
-        return issues.join('\n');
-    }
-
-    // Identify key clauses (simulated AI)
-    function identifyKeyClauses(text, isContract) {
-        const clauses = [];
-        const lines = text.split('\n');
-        
-        lines.forEach((line, index) => {
-            line = line.trim();
-            if (!line) return;
-            
-            if (line.toLowerCase().includes('terminat')) {
-                clauses.push({
-                    text: line,
-                    type: 'termination',
-                    risk: line.includes('days') ? 'low' : 'medium',
-                    explanation: line.includes('days') ? 
-                        'Proper notice period specified' : 
-                        'Notice period not clearly defined'
-                });
-            }
-            
-            if (line.toLowerCase().includes('pay') || line.toLowerCase().includes('$')) {
-                clauses.push({
-                    text: line,
-                    type: 'payment',
-                    risk: line.includes('date') ? 'low' : 'medium',
-                    explanation: line.includes('date') ? 
-                        'Payment terms clearly specified' : 
-                        'Payment due date not specified'
-                });
-            }
-            
-            if (line.toLowerCase().includes('liable') || line.toLowerCase().includes('responsib')) {
-                clauses.push({
-                    text: line,
-                    type: 'liability',
-                    risk: 'high',
-                    explanation: 'Liability clause - review carefully'
-                });
-            }
-        });
-        
-        return clauses;
-    }
-
-    // Generate summary (simulated AI)
-    function generateSummary(text, isContract) {
-        let summary = "Document Summary:\n\n";
-        
-        if (isContract) {
-            summary += "• This appears to be a contractual agreement\n";
-            summary += "• Contains standard clauses but some may need review\n";
-            summary += "• Pay special attention to termination and payment terms\n";
-        } else {
-            summary += "• Legal document with multiple provisions\n";
-            summary += "• Contains obligations and responsibilities\n";
-            summary += "• Review all clauses for completeness\n";
-        }
-        
-        summary += "\nKey Recommendations:\n";
-        summary += "1. Verify all party information\n";
-        summary += "2. Confirm dates and monetary amounts\n";
-        summary += "3. Consult legal expert for final review\n";
-        
-        return summary;
-    }
-
-    // Display Analysis Results
-    function displayAnalysis(result) {
-        console.log("Analysis Result:", result);
-
-        // Update document type and language
-        if (documentTypeDisplay) {
-            documentTypeDisplay.textContent = `Document Type: ${result.type} | Language: ${result.language_name} (${result.language_code})`;
-        }
-
-        // Update document preview with highlighted clauses
-        if (documentPreview) {
-            let formattedText = formatDocumentText(result.text, result.type);
-            
-            // Highlight clauses in the text
-            if (result.clauses && result.clauses.length) {
-                result.clauses.forEach(clause => {
-                    const escapedText = clause.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(escapedText, 'gi');
-                    const highlightClass = `highlight-${clause.type} ${clause.risk}-risk`;
-                    
-                    formattedText = formattedText.replace(regex, match => 
-                        `<span class="clause-highlight ${highlightClass}" data-type="${clause.type}" 
-                         data-risk="${clause.risk}" title="${clause.explanation}">${match}</span>`
-                    );
-                });
-            }
-            
-            documentPreview.innerHTML = `
-                <div class="document-content">
-                    <h3>${result.type}</h3>
-                    <div class="extracted-text">
-                        ${formattedText}
-                    </div>
-                </div>
-            `;
-            
-            // Add click handlers for highlighted clauses
-            document.querySelectorAll('.clause-highlight').forEach(el => {
-                el.addEventListener('click', () => showClauseDetails(el));
-            });
-        }
-
-        // Update analysis sidebar
-        if (analysisSidebar) {
-            let analysisHTML = `
-                <h3>Document Analysis</h3>
-                <div class="analysis-results">
-                    ${parseAnalysis(result.analysis)}
-                </div>
-                
-                <div class="summary-section">
-                    <h3>AI Summary</h3>
-                    <div class="summary-content">
-                        ${result.summary.split('\n').map(line => `<p>${line}</p>`).join('')}
-                    </div>
-                </div>
-                
-                <div class="actions">
-                    <button class="action-btn" id="generate-notice">
-                        <i class="fas fa-file-alt"></i> Generate Legal Notice
-                    </button>
-                    <button class="action-btn" id="find-lawyer">
-                        <i class="fas fa-gavel"></i> Find Legal Assistance
-                    </button>
-                </div>
-            `;
-            
-            analysisSidebar.innerHTML = analysisHTML;
-            
-            // Add action button handlers
-            document.getElementById('generate-notice')?.addEventListener('click', () => {
-                alert('In full implementation, this would generate a legal notice based on the analysis');
-            });
-            
-            document.getElementById('find-lawyer')?.addEventListener('click', () => {
-                alert('In full implementation, this would connect you with legal professionals');
-            });
-        }
-
-        // Show analysis section
-        if (analysisContainer) {
-            analysisContainer.style.display = 'block';
-            window.scrollTo({
-                top: analysisContainer.offsetTop,
-                behavior: 'smooth'
-            });
-        }
-
-        fileInfo.textContent = result.message || 'Analysis complete';
-    }
-
-    // Show detailed clause information
-    function showClauseDetails(element) {
-        const type = element.dataset.type;
-        const risk = element.dataset.risk;
-        const explanation = element.title;
-        
-        // Highlight the clicked clause
-        document.querySelectorAll('.clause-highlight').forEach(el => {
-            el.classList.remove('active');
-        });
-        element.classList.add('active');
-        
-        // Show details in the sidebar
-        const detailsContainer = analysisSidebar.querySelector('.clause-details-container') || 
-            document.createElement('div');
-            
-        detailsContainer.className = 'clause-details-container';
-        detailsContainer.innerHTML = `
-            <div class="clause-details ${risk}-risk">
-                <h4>${type.charAt(0).toUpperCase() + type.slice(1)} Clause</h4>
-                <p><strong>Risk Level:</strong> <span class="risk-tag ${risk}">${risk}</span></p>
-                <p><strong>Explanation:</strong> ${explanation}</p>
-                <p><strong>Full Text:</strong> "${element.textContent}"</p>
-                <button class="action-btn small explain-btn" data-clause-type="${type}">
-                    <i class="fas fa-info-circle"></i> Explain Like I'm 5
-                </button>
-            </div>
-        `;
-        
-        // Add explain button handler
-        detailsContainer.querySelector('.explain-btn')?.addEventListener('click', () => {
-            const simpleExplanation = getSimpleExplanation(type);
-            alert(`Simple Explanation:\n\n${simpleExplanation}`);
-        });
-        
-        if (!analysisSidebar.querySelector('.clause-details-container')) {
-            analysisSidebar.insertBefore(detailsContainer, analysisSidebar.querySelector('.summary-section'));
-        }
-    }
-
-    // Get simple explanation of clause types
-    function getSimpleExplanation(type) {
-        const explanations = {
-            'termination': 'This part talks about how the agreement can end. It should say how much notice you need to give before stopping.',
-            'payment': 'This is about money - how much, when, and how payments should be made. Make sure the amounts and dates are clear.',
-            'liability': 'This says who is responsible if something goes wrong. Be careful with these parts as they might make you responsible for things.'
-        };
-        
-        return explanations[type] || 'This is an important part of the document that you should understand before agreeing.';
-    }
-
-    // Function to format the extracted text
     function formatDocumentText(text, docType) {
         if (!text) return "<p>No text extracted from the document.</p>";
 
@@ -404,8 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
             let inOrderSection = false;
             lines.forEach((line, index) => {
                 line = line.trim();
+                if (isHindi(line)) return;
                 if (index === 0 && line.toUpperCase().includes("COURT")) {
-                    formattedHtml += `<h4 style="color: var(--primary); font-weight: bold;">${line}</h4>`;
+                    formattedHtml += `<h4 style="color: gold; font-weight: bold;">${line}</h4>`;
                 } else if (line.toLowerCase().startsWith("case no")) {
                     formattedHtml += `<h4 style="font-weight: bold;">${line}</h4>`;
                 } else if (line.toLowerCase().includes(" vs. ")) {
@@ -421,18 +130,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     formattedHtml += `<p>${line}</p>`;
                 }
             });
-        } else if (docType.includes("Agreement") || docType.includes("Contract")) {
+        } else if (docType === "Rental Agreement") {
             lines.forEach((line, index) => {
                 line = line.trim();
-                if (line.toUpperCase().includes("PARTIES:")) {
-                    formattedHtml += `<h4 style="font-weight: bold; color: var(--primary);">${line}</h4>`;
-                } else if (line.toUpperCase().includes("TERMS:") || line.toUpperCase().includes("CONDITIONS:")) {
+                if (isHindi(line)) return;
+                if (line.toUpperCase().startsWith("LANDLORD:") || line.toUpperCase().startsWith("TENANT:")) {
                     formattedHtml += `<h4 style="font-weight: bold;">${line}</h4>`;
                 } else if (/^\d+\./.test(line)) {
-                    formattedHtml += `<p style="font-weight: bold;">${line}</p>`;
-                } else if (line.includes(":")) {
-                    const [label, value] = line.split(":");
-                    formattedHtml += `<p><strong>${label}:</strong>${value}</p>`;
+                    formattedHtml += `<h4 style="font-weight: bold;">${line}</h4>`;
                 } else {
                     formattedHtml += `<p>${line}</p>`;
                 }
@@ -440,16 +145,14 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             lines.forEach(line => {
                 line = line.trim();
+                if (isHindi(line)) return;
                 formattedHtml += `<p>${line}</p>`;
             });
         }
         return formattedHtml;
     }
 
-    // Function to parse analysis and create color-coded HTML
     function parseAnalysis(analysis) {
-        if (!analysis) return '<p>No analysis available</p>';
-        
         const lines = analysis.split('\n');
         let html = '';
         
@@ -458,11 +161,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!line) return;
 
             if (line.includes('⚠️')) {
-                html += `<div class="clause-details danger"><p>${line.replace('⚠️', '<span class="icon">⚠️</span>')}</p></div>`;
+                html += `<div class="clause-details tag-danger"><p>${line.replace('⚠️', '<span class="icon">⚠️</span>')}</p></div>`;
             } else if (line.includes('✅')) {
-                html += `<div class="clause-details safe"><p>${line.replace('✅', '<span class="icon">✅</span>')}</p></div>`;
+                html += `<div class="clause-details tag-safe"><p>${line.replace('✅', '<span class="icon">✅</span>')}</p></div>`;
             } else if (line.includes('❗')) {
-                html += `<div class="clause-details warning"><p>${line.replace('❗', '<span class="icon">❗</span>')}</p></div>`;
+                html += `<div class="clause-details tag-warning"><p>${line.replace('❗', '<span class="icon">❗</span>')}</p></div>`;
             } else {
                 html += `<p>${line}</p>`;
             }
@@ -470,154 +173,242 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
 
-// Download clause analysis as PDF
-function downloadAnalysisAsPDF(analysisText) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(12);
-    doc.text("Clause Analysis Report", 10, 10);
-    const lines = analysisText.split('\n');
-    let yPosition = 20;
-    lines.forEach(line => {
-        if (yPosition > 280) {
-            doc.addPage();
-            yPosition = 10;
+    // Chatbot Functions
+    function initializeChatbot() {
+        const toggleBtn = document.getElementById('toggle-chatbot');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', toggleChatbot);
         }
-        doc.text(line, 10, yPosition);
-        yPosition += 10;
-    });
-    doc.save('clause-analysis-report.pdf');
-}
-
-// Display Analysis Results
-function displayAnalysis(result) {
-    console.log("Received Result:", result);
-
-    // Update document type and language
-    if (documentTypeDisplay) {
-        documentTypeDisplay.textContent = `Document Type: ${result.type || 'Not Detected'} | Language: ${result.language_name || 'Unknown'} (${result.language_code || 'unknown'})`;
     }
 
-    // Update document preview
-    if (documentPreview) {
-        const formattedText = formatDocumentText(result.text, result.type);
-        documentPreview.innerHTML = `
-            <div class="document-content">
-                <h3>${result.type || 'Unknown Document'}</h3>
-                <div class="extracted-text">
-                ${formattedText}
-                </div>
-            </div>
-        `;
-    }
+    function setupChatbot(documentText) {
+        currentDocumentText = documentText;
+        chatHistory = [];
+        
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+        const chatbotInput = document.getElementById('chatbot-input-field');
+        const chatbotSend = document.getElementById('chatbot-send');
+        const closeChatbot = document.getElementById('close-chatbot');
 
-    // Update analysis sidebar with clause analysis, summary, and download button
-    if (analysisSidebar) {
-        const parsedAnalysis = parseAnalysis(result.analysis);
-        analysisSidebar.innerHTML = `
-            <h3>Clause Analysis</h3>
-            ${parsedAnalysis || '<p>No analysis available.</p>'}
-            <button class="action-btn" onclick="downloadAnalysisAsPDF('${result.analysis.replace(/'/g, "\\'")}')">Download PDF <i class="fas fa-download"></i></button>
-            <div class="summary-section">
-                <h3>Document Summary</h3>
-                <div class="language-toggle">
-                    <button class="lang-btn active" data-lang="en">English</button>
-                    <button class="lang-btn" data-lang="hi">Hindi</button>
-                    <button class="lang-btn" data-lang="ta">Tamil</button>
-                    <button class="lang-btn" data-lang="te">Telugu</button>
-                </div>
-                <div id="summary-content" class="summary-content">
-                    <pre>${result.summary || 'No summary available.'}</pre>
-                </div>
-                <button class="voice-btn" data-lang="en">
-                    <i class="fas fa-volume-up"></i> Read Summary
-                </button>
-            </div>
-        `;
+        // Show chatbot
+        chatbotContainer.classList.remove('chatbot-hidden');
+        chatbotContainer.classList.add('chatbot-visible');
 
-        // Add language toggle functionality
-        const langBtns = document.querySelectorAll('.lang-btn');
-        const summaryContent = document.getElementById('summary-content');
-        langBtns.forEach(btn => {
-            btn.addEventListener('click', async function () {
-                const lang = this.getAttribute('data-lang');
-                langBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+        // Add welcome message
+        addBotMessage("Hello! I'm your VakilAI assistant. Ask me anything about the document you just uploaded.");
 
-                // Fetch summary in the selected language
-                const response = await fetch('/generate-summary', {
+        // Event listeners
+        chatbotSend.addEventListener('click', sendMessage);
+        chatbotInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
+        closeChatbot.addEventListener('click', () => toggleChatbot(false));
+
+        async function sendMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+
+            addUserMessage(message);
+            chatbotInput.value = '';
+
+            try {
+                const response = await fetch('/chatbot-query', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: result.text, languageCode: lang })
+                    body: JSON.stringify({
+                        question: message,
+                        documentText: currentDocumentText,
+                        history: chatHistory
+                    })
                 });
-                const data = await response.json();
-                summaryContent.innerHTML = `<pre>${data.summary || 'No summary available.'}</pre>`;
-            });
-        });
 
-        // Add voice functionality
+                const data = await response.json();
+                addBotMessage(data.answer);
+                chatHistory.push({role: 'assistant', content: data.answer});
+            } catch (error) {
+                console.error('Chatbot error:', error);
+                addBotMessage("Sorry, I'm having trouble answering that. Please try again.");
+            }
+        }
+
+        function addUserMessage(message) {
+            chatHistory.push({role: 'user', content: message});
+            addMessage(message, 'user-message');
+        }
+
+        function addBotMessage(message) {
+            addMessage(message, 'bot-message');
+        }
+
+        function addMessage(message, className) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message', className);
+            messageDiv.textContent = message;
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+    }
+
+    function toggleChatbot(show = null) {
+        const chatbot = document.getElementById('chatbot-container');
+        const shouldShow = show !== null ? show : chatbot.classList.contains('chatbot-hidden');
+        
+        if (shouldShow) {
+            chatbot.classList.remove('chatbot-hidden');
+            chatbot.classList.add('chatbot-visible');
+        } else {
+            chatbot.classList.remove('chatbot-visible');
+            chatbot.classList.add('chatbot-hidden');
+        }
+    }
+
+    // Display Analysis Results
+    async function displayAnalysis(result) {
+        console.log("Received Result:", result);
+
+        // Update document type and language
+        if (documentTypeDisplay) {
+            documentTypeDisplay.textContent = `Document Type: ${result.type || 'Not Detected'} | Language: ${result.language_name || 'Unknown'} (${result.language_code || 'unknown'})`;
+        }
+
+        // Update document preview
+        if (documentPreview) {
+            const formattedText = formatDocumentText(result.text, result.type);
+            documentPreview.innerHTML = `
+                <div class="document-content">
+                    <h3>${result.type || 'Unknown Document'}</h3>
+                    <div class="extracted-text">
+                    ${formattedText}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update analysis sidebar
+        if (analysisSidebar) {
+            const parsedAnalysis = parseAnalysis(result.analysis);
+            analysisSidebar.innerHTML = `
+                <h3>Clause Analysis</h3>
+                ${parsedAnalysis || '<p>No analysis available.</p>'}
+                
+                <div class="summary-section">
+                    <h3>Document Summary</h3>
+                    <div class="language-toggle">
+                        <button class="lang-btn active" data-lang="en">English</button>
+                        <button class="lang-btn" data-lang="hi">Hindi</button>
+                        <button class="lang-btn" data-lang="ta">Tamil</button>
+                        <button class="lang-btn" data-lang="te">Telugu</button>
+                    </div>
+                    <div id="summary-content" class="summary-content">
+                        <pre>${result.summary || 'Waiting for summary...'}</pre>
+                    </div>
+                    <button class="voice-btn" data-lang="en">
+                        <i class="fas fa-volume-up"></i> Read Summary
+                    </button>
+                    <button id="download-pdf" class="download-btn">
+                        <i class="fas fa-file-pdf"></i> Download Analysis
+                    </button>
+                </div>
+            `;
+
+            // Set up event listeners
+            setupPdfDownload();
+            setupVoiceButton();
+        }
+
+        // Initialize chatbot with document text
+        setupChatbot(result.text);
+
+        // Show analysis section
+        if (analysisContainer) {
+            analysisContainer.style.display = 'block';
+            window.scrollTo({
+                top: analysisContainer.offsetTop,
+                behavior: 'smooth'
+            });
+        }
+
+        fileInfo.textContent = result.message || 'Processing complete';
+    }
+
+    function setupPdfDownload() {
+        const downloadBtn = document.getElementById('download-pdf');
+        if (!downloadBtn) return;
+    
+        downloadBtn.addEventListener('click', async function() {
+            const btn = this;
+            try {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.disabled = true;
+                
+                // Safely get the language value with fallback
+                const languageSelector = document.getElementById('main-language');
+                const selectedLanguage = languageSelector ? languageSelector.value : 'en';
+                
+                // Get all the necessary data for the PDF
+                const analysisData = {
+                    analysis: document.querySelector('.analysis-sidebar')?.innerHTML || '',
+                    summary: document.getElementById('summary-content')?.innerText || '',
+                    documentType: document.getElementById('document-type')?.textContent || 'Unknown Document Type',
+                    language: selectedLanguage
+                };
+    
+                // Make the request to generate PDF
+                const response = await fetch('/generate-pdf', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/pdf' 
+                    },
+                    body: JSON.stringify(analysisData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+    
+                // Create blob from response
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                
+                // Create download link and trigger click
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'vakilai-legal-analysis.pdf';
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+                
+            } catch (error) {
+                console.error('PDF Download Error:', error);
+                alert(`Failed to generate PDF: ${error.message}`);
+            } finally {
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download Analysis';
+                btn.disabled = false;
+            }
+        });
+    }
+    function setupVoiceButton() {
         const voiceBtn = document.querySelector('.voice-btn');
-        voiceBtn.addEventListener('click', function () {
-            const lang = document.querySelector('.lang-btn.active').getAttribute('data-lang');
-            const summaryText = summaryContent.textContent;
+        if (!voiceBtn) return;
+
+        voiceBtn.addEventListener('click', function() {
+            const lang = this.getAttribute('data-lang');
+            const summaryText = document.getElementById('summary-content').textContent;
+            
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(summaryText);
-                utterance.lang = lang === 'hi' ? 'hi-IN' : lang === 'ta' ? 'ta-IN' : lang === 'te' ? 'te-IN' : 'en-US';
+                utterance.lang = lang === 'hi' ? 'hi-IN' : 
+                                  lang === 'ta' ? 'ta-IN' : 
+                                  lang === 'te' ? 'te-IN' : 'en-US';
                 window.speechSynthesis.speak(utterance);
             } else {
                 alert('Text-to-speech not supported in your browser');
             }
         });
     }
-
-    // Show analysis section
-    if (analysisContainer) {
-        analysisContainer.style.display = 'block';
-        window.scrollTo({
-            top: analysisContainer.offsetTop,
-            behavior: 'smooth'
-        });
-    }
-
-    fileInfo.textContent = result.message || 'Processing complete';
-}
-
-// Main Language Selector
-const mainLanguageSelector = document.getElementById('main-language');
-if (mainLanguageSelector) {
-    mainLanguageSelector.addEventListener('change', function () {
-        alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
-    });
-}
-
-// About Us Modal functionality
-const aboutLink = document.querySelector('footer a[href="#about"]');
-const modal = document.getElementById('about-modal');
-const closeModal = document.querySelector('.close-modal');
-
-if (aboutLink && modal && closeModal) {
-    aboutLink.addEventListener('click', function (e) {
-        e.preventDefault();
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-    });
-
-    closeModal.addEventListener('click', function () {
-        modal.classList.remove('show');
-        document.body.style.overflow = '';
-    });
-
-    modal.addEventListener('click', function (e) {
-        if (e.target === modal) {
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-    });
-
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal.classList.contains('show')) {
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-    });
-}
+});
