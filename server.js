@@ -6,14 +6,12 @@ const PDFExtract = require('pdf.js-extract').PDFExtract;
 const Tesseract = require('tesseract.js');
 const mammoth = require('mammoth');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const pdf = require('html-pdf'); 
+const pdf = require('html-pdf');
 require('dotenv').config();
 
-// Initialize Express app
 const app = express();
 const port = 3000;
 
-// PDF generation options (moved up with other configurations)
 const pdfOptions = {
   format: 'A4',
   orientation: 'portrait',
@@ -23,7 +21,7 @@ const pdfOptions = {
     bottom: '0.5in',
     left: '0.5in'
   },
-  timeout: 60000 
+  timeout: 60000
 };
 
 const uploadDir = path.join(__dirname, 'uploads');
@@ -40,9 +38,10 @@ const storage = multer.diskStorage({
         cb(null, uniqueId + path.extname(file.originalname));
     }
 });
+
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, 
+    limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
         const ext = path.extname(file.originalname).toLowerCase();
@@ -53,12 +52,14 @@ const upload = multer({
         }
     }
 });
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY not found in environment variables');
 }
+
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash-latest",
@@ -111,7 +112,7 @@ async function extractTextFromPDF(filePath) {
 
 async function extractTextFromImage(filePath) {
     const { data: { text } } = await Tesseract.recognize(filePath, 'eng+hin+tam+tel+ben+mar+guj+kan+mal+ori+pan+asm', {
-        logger: m => console.log(m) /
+        logger: m => console.log(m)
     });
     return text.trim();
 }
@@ -366,7 +367,6 @@ app.post('/generate-pdf', express.json(), async (req, res) => {
             res.setHeader('Content-Length', buffer.length);
             res.send(buffer);
         });
-
     } catch (error) {
         console.error('PDF Endpoint Error:', error);
         res.status(500).json({ 
@@ -376,13 +376,14 @@ app.post('/generate-pdf', express.json(), async (req, res) => {
         });
     }
 });
+
 app.post('/chatbot-query', express.json(), async (req, res) => {
     try {
         const { question, documentText, history } = req.body;
         
         const prompt = `
         You are VakilAI, a legal assistant chatbot. The user has uploaded a document with the following content:
-        ${documentText.slice(0, 10000)}  // Limit context size
+        ${documentText.slice(0, 10000)}
         
         Conversation history:
         ${history.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
@@ -403,12 +404,12 @@ app.post('/chatbot-query', express.json(), async (req, res) => {
         res.status(500).json({ error: 'Failed to process chatbot query' });
     }
 });
+
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start the server
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
