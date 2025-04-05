@@ -357,3 +357,117 @@ h1 {
       grid-template-columns: 1fr;
     }
   }
+  /* Add these styles to your existing CSS */
+
+/* Upper Navigation Bar */
+.upper-navigation {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 1rem 0;
+  box-shadow: var(--shadow-sm);
+  z-index: 100;
+}
+
+/* Lower Navigation Bar */
+.lower-navigation {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 1rem 0;
+  box-shadow: var(--shadow-sm);
+  margin-top: 2rem;
+  z-index: 100;
+}
+
+/* Container for navigation content to maintain max-width */
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Adjust body padding to account for full-width nav bars */
+body {
+  padding: 0; /* Remove the padding from body */
+}
+
+/* Main content container */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+/* Add this to your CSS file (style.css or another.css) */
+
+/* Full-width header/navbar */
+header[role="banner"], 
+footer[role="contentinfo"] {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-sm);
+    z-index: 100;
+}
+
+/* Header specific styles */
+header[role="banner"] {
+    padding: 1rem 0;
+}
+
+/* Footer specific styles */
+footer[role="contentinfo"] {
+    margin-top: 3rem;
+    padding: 2rem 0;
+}
+
+/* Container inside header/footer to maintain content width */
+.navbar,
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Adjust body to remove default padding */
+body {
+    padding: 0 !important; /* Important to override any existing padding */
+    overflow-x: hidden; /* Prevent horizontal scroll from full-width elements */
+}
+
+/* Main content container */
+#results-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .navbar,
+    .footer-content {
+        padding: 0 1rem;
+    }
+    
+    #results-container {
+        padding: 1rem;
+    }
+}
