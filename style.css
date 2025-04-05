@@ -115,7 +115,7 @@ header {
 }
 
 .upload-container {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgb(255, 255, 255);
     border-radius: 10px;
     padding: 2rem;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
@@ -123,6 +123,7 @@ header {
     max-width: 800px;
     position: relative;
     z-index: 10;
+    margin: -50px auto 4rem;
 }
 
 .upload-container:hover {
@@ -168,7 +169,6 @@ header {
     flex-wrap: wrap;
     justify-content: center;
     gap: 2rem;
-    max-width: 1200px;
     margin: 0 auto;
     padding: 4rem 2rem;
     background: linear-gradient(90deg, 
@@ -609,5 +609,318 @@ footer {
     .chatbot-toggle {
         right: 5%;
         bottom: 10px;
+    }
+}
+.clause-details {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    color: #333; /* Ensure text is black */
+}
+
+.clause-details h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #000; /* Black for headers */
+    font-weight: 600;
+}
+
+.clause-details p {
+    color: #333; /* Dark gray for body text */
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+/* Classification tags */
+.clause-classification {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #000; /* Black text for classification */
+}
+
+.tag-danger .clause-classification {
+    background-color: rgba(255, 68, 68, 0.1);
+    border-left: 3px solid var(--danger);
+}
+
+.tag-safe .clause-classification {
+    background-color: rgba(0, 200, 81, 0.1);
+    border-left: 3px solid var(--safe);
+}
+
+.tag-warning .clause-classification {
+    background-color: rgba(255, 187, 51, 0.1);
+    border-left: 3px solid var(--warning);
+}
+/* Chatbot Header Improvements */
+.chatbot-header {
+    background: #f8f9fa;
+    color: #000; /* Black text */
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.chatbot-header h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    color: #000;
+}
+
+#close-chatbot {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+#close-chatbot:hover {
+    color: #000;
+}
+
+/* Chatbot messages */
+.bot-message {
+    background: #f1f1f1;
+    color: #333;
+    border-radius: 18px 18px 18px 4px;
+}
+
+.user-message {
+    background: #e3f2fd;
+    color: #333;
+    border-radius: 18px 18px 4px 18px;
+}
+/* Updated Upload Container with Dynamic Effects */
+.upload-container {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    margin: -50px auto 4rem;
+    max-width: 800px;
+    position: relative;
+    z-index: 10;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 2px dashed transparent;
+    overflow: hidden; /* For pseudo-element */
+}
+
+/* Gradient border effect on hover */
+.upload-container:hover {
+    border-color: var(--primary);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+    transform: translateY(-5px);
+}
+
+/* Active state (when dragging files over) */
+.upload-container.active {
+    border-color: var(--primary);
+    background-color: #f8fbff;
+    animation: pulse 2s infinite;
+}
+
+/* Pulse animation for active state */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(63, 81, 181, 0.2); }
+    70% { box-shadow: 0 0 0 15px rgba(63, 81, 181, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(63, 81, 181, 0); }
+}
+
+/* Shine effect on hover */
+.upload-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: 0.5s;
+}
+
+.upload-container:hover::before {
+    left: 100%;
+}
+
+/* Upload icon animation */
+.upload-icon {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.upload-container:hover .upload-icon {
+    transform: scale(1.1) rotate(5deg);
+    color: var(--gradient-mid2);
+}
+
+/* Upload button enhancements */
+.upload-btn {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.upload-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        45deg,
+        rgba(255,255,255,0.1),
+        rgba(255,255,255,0.3)
+    );
+    transform: translateX(-100%) skewX(-15deg);
+    transition: 0.4s;
+}
+
+.upload-btn:hover::after {
+    transform: translateX(100%) skewX(-15deg);
+}
+
+/* File info text animation */
+.file-info {
+    transition: all 0.3s ease;
+    transform-origin: left;
+}
+
+.upload-container:hover .file-info {
+    transform: scale(1.02);
+    color: #444;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .upload-container {
+        padding: 2rem;
+        margin: -30px auto 3rem;
+    }
+    
+    .upload-icon {
+        font-size: 2.5rem;
+    }
+}
+/* Enhanced Feature Cards with Dynamic Hover Effects */
+.feature-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    padding: 2rem;
+    width: 350px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(63, 81, 181, 0.1);
+}
+
+/* Gradient Underline Effect */
+.feature-card h3 {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+.feature-card h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+    transition: width 0.4s ease;
+}
+
+.feature-card:hover h3::after {
+    width: 100%;
+}
+
+/* Color Shift Effect */
+.feature-card:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(63, 81, 181, 0.3);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+/* Pulse Animation on Icon */
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    transition: all 0.4s ease;
+    display: inline-block;
+}
+
+.feature-card:hover .feature-icon {
+    animation: pulse 1.5s infinite;
+    color: var(--gradient-mid2);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Subtle Background Highlight */
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(63, 81, 181, 0.03), rgba(105, 19, 105, 0.03));
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.feature-card:hover::before {
+    opacity: 1;
+}
+
+/* Text Color Shift */
+.feature-card:hover h3 {
+    color: var(--gradient-mid2);
+}
+
+/* Button-like Cursor */
+.feature-card {
+    cursor: pointer;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .feature-card {
+        width: 100%;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
     }
 }

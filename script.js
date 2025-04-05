@@ -333,38 +333,51 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupPdfDownload() {
         const downloadBtn = document.getElementById('download-pdf');
         if (!downloadBtn) return;
-
+    
         downloadBtn.addEventListener('click', async function() {
             const btn = this;
             try {
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
                 btn.disabled = true;
                 
+                // Safely get the language value with fallback
+                const languageSelector = document.getElementById('main-language');
+                const selectedLanguage = languageSelector ? languageSelector.value : 'en';
+                
+                // Get all the necessary data for the PDF
                 const analysisData = {
-                    analysis: document.querySelector('.analysis-sidebar').innerText,
-                    summary: document.getElementById('summary-content').innerText,
-                    documentType: documentTypeDisplay.textContent,
-                    language: mainLanguageSelector.value
+                    analysis: document.querySelector('.analysis-sidebar')?.innerHTML || '',
+                    summary: document.getElementById('summary-content')?.innerText || '',
+                    documentType: document.getElementById('document-type')?.textContent || 'Unknown Document Type',
+                    language: selectedLanguage
                 };
-
+    
+                // Make the request to generate PDF
                 const response = await fetch('/generate-pdf', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/pdf' 
+                    },
                     body: JSON.stringify(analysisData)
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Failed to generate PDF');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
+    
+                // Create blob from response
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
+                
+                // Create download link and trigger click
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'vakilai-legal-analysis.pdf';
                 document.body.appendChild(a);
                 a.click();
                 
+                // Cleanup
                 setTimeout(() => {
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
@@ -372,14 +385,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
             } catch (error) {
                 console.error('PDF Download Error:', error);
-                alert(`PDF generation failed: ${error.message}`);
+                alert(`Failed to generate PDF: ${error.message}`);
             } finally {
                 btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download Analysis';
                 btn.disabled = false;
             }
         });
     }
-
     function setupVoiceButton() {
         const voiceBtn = document.querySelector('.voice-btn');
         if (!voiceBtn) return;
