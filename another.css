@@ -23,7 +23,7 @@
     --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
   
-  /* Base Styles */
+ 
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-color: var(--light);
@@ -38,7 +38,7 @@
     radial-gradient(circle at 90% 80%, rgba(52, 152, 219, 0.15) 0%, transparent 25%),
     linear-gradient(135deg, #f8f9fa, #e8eaf6);
   
-  /* Subtle Noise Texture */
+ 
   background-image: 
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
     radial-gradient(circle at 10% 20%, rgba(142, 68, 173, 0.15) 0%, transparent 25%),
@@ -50,7 +50,7 @@
     justify-content: space-evenly;
     align-items: center;
   }
-  /* Animated Heading Underline */
+  
 h1 {
     text-align: center;
     margin: 0 0 3rem;
@@ -68,7 +68,7 @@ h1 {
     cursor: default;
   }
   
-  /* Underline Element */
+ 
   h1::after {
     content: '';
     position: absolute;
@@ -86,13 +86,13 @@ h1 {
                 width 0.4s ease;
   }
   
-  /* Hover Animation - Underline Expands */
+  
   h1:hover::after {
     transform: scaleX(1);
     width: 100%;
   }
   
-  /* Optional: Add a secondary animation for more depth */
+  
   h1::before {
     content: '';
     position: absolute;
@@ -112,7 +112,7 @@ h1 {
     width: 80%;
     bottom: -8px;
   }
-  /* Search Form - Animated Floating Effect */
+  
   .search-container {
     display: flex;
     flex-wrap: wrap;
@@ -156,7 +156,7 @@ h1 {
     transform: translateY(-3px);
   }
   
-  /* Animated Button */
+
   button {
     background: linear-gradient(135deg, 
       var(--gradient-start), 
@@ -200,12 +200,12 @@ h1 {
     opacity: 1;
   }
   
-  /* Pulse Animation on Hover */
+ 
   button:active {
     animation: pulse 0.5s;
   }
   
-  /* Results Grid - Staggered Animation */
+  
   #results {
     margin-top: 2rem;
     display: grid;
@@ -227,7 +227,6 @@ h1 {
     animation: fadeInUp 0.6s ease-out forwards;
   }
   
-  /* Staggered Animation for Cards */
   .lawyer-card:nth-child(1) { animation-delay: 0.1s; }
   .lawyer-card:nth-child(2) { animation-delay: 0.2s; }
   .lawyer-card:nth-child(3) { animation-delay: 0.3s; }
@@ -263,7 +262,7 @@ h1 {
     width: 100%;
   }
   
-  /* Interactive Map */
+ 
   #map {
     height: 500px;
     width: 100%;
@@ -282,7 +281,7 @@ h1 {
     transform: translateY(-5px);
   }
   
-  /* Loading Animation */
+  
   .loading-spinner {
     display: inline-block;
     width: 50px;
@@ -294,7 +293,7 @@ h1 {
     margin: 2rem auto;
   }
   
-  /* Keyframe Animations */
+  
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -332,7 +331,7 @@ h1 {
     to { transform: rotate(360deg); }
   }
   
-  /* Responsive Design */
+  
   @media (max-width: 768px) {
     body {
       padding: 1.5rem;
@@ -357,9 +356,7 @@ h1 {
       grid-template-columns: 1fr;
     }
   }
-  /* Add these styles to your existing CSS */
-
-/* Upper Navigation Bar */
+  
 .upper-navigation {
   width: 100vw;
   position: relative;
@@ -374,7 +371,7 @@ h1 {
   z-index: 100;
 }
 
-/* Lower Navigation Bar */
+
 .lower-navigation {
   width: 100vw;
   position: relative;
@@ -390,7 +387,6 @@ h1 {
   z-index: 100;
 }
 
-/* Container for navigation content to maintain max-width */
 .nav-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -400,20 +396,20 @@ h1 {
   align-items: center;
 }
 
-/* Adjust body padding to account for full-width nav bars */
+
 body {
-  padding: 0; /* Remove the padding from body */
+  padding: 0; 
 }
 
-/* Main content container */
+
 .main-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
-/* Add this to your CSS file (style.css or another.css) */
 
-/* Full-width header/navbar */
+
+
 header[role="banner"], 
 footer[role="contentinfo"] {
     width: 100vw;
@@ -428,18 +424,18 @@ footer[role="contentinfo"] {
     z-index: 100;
 }
 
-/* Header specific styles */
+
 header[role="banner"] {
     padding: 1rem 0;
 }
 
-/* Footer specific styles */
+
 footer[role="contentinfo"] {
     margin-top: 3rem;
     padding: 2rem 0;
 }
 
-/* Container inside header/footer to maintain content width */
+
 .navbar,
 .footer-content {
     max-width: 1200px;
@@ -447,20 +443,20 @@ footer[role="contentinfo"] {
     padding: 0 2rem;
 }
 
-/* Adjust body to remove default padding */
+
 body {
-    padding: 0 !important; /* Important to override any existing padding */
-    overflow-x: hidden; /* Prevent horizontal scroll from full-width elements */
+    padding: 0 !important; 
+    overflow-x: hidden; 
 }
 
-/* Main content container */
+
 #results-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
 }
 
-/* Mobile responsiveness */
+
 @media (max-width: 768px) {
     .navbar,
     .footer-content {
