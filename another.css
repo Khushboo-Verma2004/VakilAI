@@ -1,0 +1,359 @@
+
+/* Modern Lawyer Finder UI with Animations */
+:root {
+    /* Color Scheme */
+    --primary: #3f51b5;
+    --primary-light: #757de8;
+    --primary-dark: #002984;
+    --gradient-start: #8e44ad;
+    --gradient-mid: #9b59b6;
+    --gradient-end: #3498db;
+    --dark: #2d2d2d;
+    --light: #f8f9fa;
+    --danger: #ff4444;
+    --success: #00C851;
+    
+    /* Effects */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    --shadow-xl: 0 20px 50px rgba(0,0,0,0.2);
+    --border-radius: 12px;
+    --border-radius-lg: 20px;
+    --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  
+  /* Base Styles */
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--light);
+    color: var(--dark);
+    line-height: 1.6;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: 
+    radial-gradient(circle at 10% 20%, rgba(142, 68, 173, 0.15) 0%, transparent 25%),
+    radial-gradient(circle at 90% 80%, rgba(52, 152, 219, 0.15) 0%, transparent 25%),
+    linear-gradient(135deg, #f8f9fa, #e8eaf6);
+  
+  /* Subtle Noise Texture */
+  background-image: 
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 10% 20%, rgba(142, 68, 173, 0.15) 0%, transparent 25%),
+    radial-gradient(circle at 90% 80%, rgba(52, 152, 219, 0.15) 0%, transparent 25%),
+    linear-gradient(135deg, #f8f9fa, #e8eaf6);
+  }
+  .search-bar{
+    display:flex;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+  /* Animated Heading Underline */
+h1 {
+    text-align: center;
+    margin: 0 0 3rem;
+    font-size: 3rem;
+    background: linear-gradient(135deg, 
+      var(--gradient-start), 
+      var(--gradient-mid), 
+      var(--gradient-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 10px;
+    cursor: default;
+  }
+  
+  /* Underline Element */
+  h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, 
+      var(--gradient-start), 
+      var(--gradient-end));
+    border-radius: 2px;
+    transform: scaleX(0.2);
+    transform-origin: center;
+    transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                width 0.4s ease;
+  }
+  
+  /* Hover Animation - Underline Expands */
+  h1:hover::after {
+    transform: scaleX(1);
+    width: 100%;
+  }
+  
+  /* Optional: Add a secondary animation for more depth */
+  h1::before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    transition: all 0.4s ease;
+    filter: blur(2px);
+  }
+  
+  h1:hover::before {
+    opacity: 1;
+    width: 80%;
+    bottom: -8px;
+  }
+  /* Search Form - Animated Floating Effect */
+  .search-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+  }
+  .search-container {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: 
+      inset 0 0 10px rgba(255, 255, 255, 0.8),
+      var(--shadow-md);
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+  
+  #locationInput, 
+  #specialtySelect {
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    width: 300px;
+    max-width: 100%;
+    transition: var(--transition);
+    background: rgba(255,255,255,0.9);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  
+  #locationInput:focus, 
+  #specialtySelect:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 153, 252, 0.3),
+                var(--shadow-lg);
+    transform: translateY(-3px);
+  }
+  
+  /* Animated Button */
+  button {
+    background: linear-gradient(135deg, 
+      var(--gradient-start), 
+      var(--gradient-end));
+    color: white;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: var(--border-radius);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-lg);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+  
+  button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+      var(--gradient-end), 
+      var(--gradient-start));
+    opacity: 0;
+    transition: var(--transition);
+    z-index: -1;
+  }
+  
+  button:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-xl);
+  }
+  
+  button:hover::before {
+    opacity: 1;
+  }
+  
+  /* Pulse Animation on Hover */
+  button:active {
+    animation: pulse 0.5s;
+  }
+  
+  /* Results Grid - Staggered Animation */
+  #results {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  .lawyer-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.3);
+    transform: translateY(20px);
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  
+  /* Staggered Animation for Cards */
+  .lawyer-card:nth-child(1) { animation-delay: 0.1s; }
+  .lawyer-card:nth-child(2) { animation-delay: 0.2s; }
+  .lawyer-card:nth-child(3) { animation-delay: 0.3s; }
+  .lawyer-card:nth-child(4) { animation-delay: 0.4s; }
+  
+  .lawyer-card:hover {
+    transform: translateY(-10px) !important;
+    box-shadow: var(--shadow-xl);
+  }
+  
+  .lawyer-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--dark);
+    position: relative;
+    display: inline-block;
+  }
+  
+  .lawyer-card h3::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, 
+      var(--gradient-start), 
+      var(--gradient-end));
+    transition: var(--transition);
+  }
+  
+  .lawyer-card:hover h3::after {
+    width: 100%;
+  }
+  
+  /* Interactive Map */
+  #map {
+    height: 500px;
+    width: 100%;
+    border-radius: var(--border-radius-lg);
+    margin: 3rem 0;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(0,0,0,0.1);
+    background: #f8f9fa;
+    transition: var(--transition);
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out 0.4s forwards;
+  }
+  
+  #map:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-5px);
+  }
+  
+  /* Loading Animation */
+  .loading-spinner {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(59, 153, 252, 0.2);
+    border-radius: 50%;
+    border-top-color: var(--gradient-start);
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+  }
+  
+  /* Keyframe Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fadeInUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInDown {
+    from { 
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    body {
+      padding: 1.5rem;
+    }
+    
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .search-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    #locationInput, 
+    #specialtySelect {
+      width: 100%;
+    }
+    
+    #results {
+      grid-template-columns: 1fr;
+    }
+  }
