@@ -12,13 +12,32 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Serve static files from root directory
-app.use(express.static(__dirname));
-
-// Default route - send index.html
+// Explicit routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  const filePath = path.join(__dirname, 'index.html');
+  console.log('Root route accessed, serving:', filePath);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    console.error('File not found:', filePath);
+    res.status(404).send('404 - File not found');
+  }
 });
+
+app.get('/about', (req, res) => {
+  const filePath = path.join(__dirname, 'about.html');
+  console.log('About route accessed, serving:', filePath);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    console.error('File not found:', filePath);
+    res.status(404).send('404 - File not found');
+  }
+});
+
+// Serve static files from the 'public' subdirectory
+app.use('/public', express.static(path.join(__dirname, 'public')));
+console.log('Serving static files from:', path.join(__dirname, 'public'));
 
 const pdfOptions = {
   format: 'A4',
