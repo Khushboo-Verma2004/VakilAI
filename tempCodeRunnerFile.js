@@ -13,12 +13,12 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Lawyer data
+
 const lawyers = [
   {
     "id": 1,
@@ -94,7 +94,7 @@ const lawyers = [
   }
 ];
 
-// PDF options for report generation
+
 const pdfOptions = {
   format: 'A4',
   orientation: 'portrait',
@@ -107,7 +107,7 @@ const pdfOptions = {
   timeout: 60000
 };
 
-// File upload configuration
+
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
@@ -137,7 +137,7 @@ const upload = multer({
     }
 });
 
-// Document types for classification
+
 const DOCUMENT_TYPES = [
   "Rental Agreement",
   "NDA (Non-Disclosure Agreement)",
@@ -148,7 +148,6 @@ const DOCUMENT_TYPES = [
   "Other Legal Document"
 ];
 
-// Initialize Google Generative AI
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY not found in environment variables');
@@ -164,7 +163,7 @@ const model = genAI.getGenerativeModel({
     temperature: 0.3
 });
 
-// Text extraction functions
+
 async function extractText(filePath) {
     const ext = path.extname(filePath).toLowerCase();
 
@@ -207,7 +206,7 @@ async function extractTextFromDocx(filePath) {
     return result.value.trim();
 }
 
-// AI analysis functions
+
 async function detectDocumentType(text) {
     try {
         const docTypesList = DOCUMENT_TYPES.map(type => `- ${type}`).join('\n');
@@ -309,12 +308,12 @@ async function generateDocumentSummary(text, languageCode = "en") {
     }
 }
 
-// Routes
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Lawyer search endpoint
+
 app.get('/api/lawyers', (req, res) => {
   try {
     const location = req.query.location ? req.query.location.toLowerCase().trim() : '';
@@ -340,7 +339,6 @@ app.get('/api/lawyers', (req, res) => {
   }
 });
 
-// Document processing endpoint
 app.post('/process-document', upload.single('document'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ status: 'error', message: 'No file uploaded' });
@@ -523,12 +521,12 @@ app.post('/chatbot-query', express.json(), async (req, res) => {
     }
 });
 
-// Catch-all route
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Error handling middleware
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
