@@ -6,7 +6,7 @@ const PDFExtract = require('pdf.js-extract').PDFExtract;
 const Tesseract = require('tesseract.js');
 const mammoth = require('mammoth');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const pdf = require('html-pdf'); // Single declaration at the top
+const pdf = require('html-pdf'); 
 require('dotenv').config();
 
 // Initialize Express app
@@ -23,16 +23,14 @@ const pdfOptions = {
     bottom: '0.5in',
     left: '0.5in'
   },
-  timeout: 60000 // 60 seconds timeout
+  timeout: 60000 
 };
 
-// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
-// Configure Multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
@@ -44,7 +42,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    limits: { fileSize: 10 * 1024 * 1024 }, 
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
         const ext = path.extname(file.originalname).toLowerCase();
@@ -55,11 +53,8 @@ const upload = multer({
         }
     }
 });
-
-// Serve static files (frontend)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Initialize Gemini API
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY not found in environment variables');
@@ -74,7 +69,6 @@ const model = genAI.getGenerativeModel({
     temperature: 0.3
 });
 
-// Document Types
 const DOCUMENT_TYPES = [
     "Rental Agreement",
     "NDA (Non-Disclosure Agreement)",
@@ -85,8 +79,6 @@ const DOCUMENT_TYPES = [
     "Other Legal Document"
 ];
 
-// [Keep all your existing functions here: extractText, extractTextFromPDF, etc.]
-// These should remain exactly the same as in your original file
 async function extractText(filePath) {
     const ext = path.extname(filePath).toLowerCase();
 
@@ -119,7 +111,7 @@ async function extractTextFromPDF(filePath) {
 
 async function extractTextFromImage(filePath) {
     const { data: { text } } = await Tesseract.recognize(filePath, 'eng+hin+tam+tel+ben+mar+guj+kan+mal+ori+pan+asm', {
-        logger: m => console.log(m) // Optional: Log Tesseract progress
+        logger: m => console.log(m) /
     });
     return text.trim();
 }
@@ -230,7 +222,6 @@ async function generateDocumentSummary(text, languageCode = "en") {
     }
 }
 
-// Process Document Route
 app.post('/process-document', upload.single('document'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ status: 'error', message: 'No file uploaded' });
@@ -276,7 +267,6 @@ app.post('/process-document', upload.single('document'), async (req, res) => {
     }
 });
 
-// Endpoint for generating summary in different languages
 app.post('/generate-summary', express.json(), async (req, res) => {
     const { text, languageCode } = req.body;
     if (!text || !languageCode) {
@@ -291,7 +281,6 @@ app.post('/generate-summary', express.json(), async (req, res) => {
     }
 });
 
-// Single PDF generation endpoint
 app.post('/generate-pdf', express.json(), async (req, res) => {
     try {
         const { analysis, summary, documentType, language } = req.body;
@@ -387,7 +376,6 @@ app.post('/generate-pdf', express.json(), async (req, res) => {
         });
     }
 });
-// Add this endpoint to server.js
 app.post('/chatbot-query', express.json(), async (req, res) => {
     try {
         const { question, documentText, history } = req.body;
@@ -415,7 +403,6 @@ app.post('/chatbot-query', express.json(), async (req, res) => {
         res.status(500).json({ error: 'Failed to process chatbot query' });
     }
 });
-// Global error handler
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     res.status(500).json({ error: 'Internal server error' });
