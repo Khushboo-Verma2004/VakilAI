@@ -1,4 +1,11 @@
 {
+  "name": "vakilai-backend",
+  "version": "1.0.0",
+  "description": "AI-powered legal assistant",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
     "dotenv": "^16.4.7",
