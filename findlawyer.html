@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Lawyer Finder</title>
-  <!-- Leaflet CSS/JS -->
+  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -48,7 +48,7 @@
         <div class="language-links" role="navigation" aria-label="Language selection">
             <h3 data-translate="footer.available">Available in:</h3>
             <div class="language-grid" id="footer-languages">
-                <!-- AI will populate this based on supported languages -->
+                
             </div>
         </div>
     </div>
@@ -56,7 +56,7 @@
 
   <script>
 document.addEventListener('DOMContentLoaded', () => {
-  initMap();  // Initialize map AFTER DOM is ready
+  initMap();  
 });
 
 function initMap() {
@@ -107,7 +107,7 @@ function updateMap(lawyers) {
   });
   
   
-  // Zoom to markers
+  
   if (lawyers.length > 0 && lawyers[0].lat) {
     const bounds = L.latLngBounds(lawyers.map(l => [l.lat, l.lng]));
     map.fitBounds(bounds, { padding: [50, 50] });
@@ -118,11 +118,11 @@ async function findLawyers() {
     const specialty = document.getElementById('specialtySelect').value;
     const resultsDiv = document.getElementById('results');
     
-    // Show loading state
+    
     resultsDiv.innerHTML = '<p class="loading">Searching for lawyers...</p>';
     
     try {
-        // Make API request to your backend
+       
         const response = await fetch(`http://localhost:3000/api/lawyers?location=${encodeURIComponent(location)}&specialization=${encodeURIComponent(specialty)}`);
         
         if (!response.ok) {
