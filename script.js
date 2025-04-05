@@ -2,7 +2,7 @@ let currentDocumentText = '';
 let chatHistory = [];
 
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements
+    
     const uploadContainer = document.getElementById('upload-container');
     const uploadBtn = document.getElementById('upload-btn');
     const fileInput = document.getElementById('file-input');
@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const analysisSidebar = document.getElementById('analysis-sidebar');
     const mainLanguageSelector = document.getElementById('main-language');
 
-    // Initialize Chatbot
+   
     initializeChatbot();
 
-    // Drag and Drop Handlers
+    
     if (uploadContainer) {
         uploadContainer.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // File Selection Handler
+    
     if (uploadBtn) {
         uploadBtn.addEventListener('click', () => fileInput.click());
     }
@@ -45,14 +45,14 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.addEventListener('change', handleFileUpload);
     }
 
-    // Language Selector
+   
     if (mainLanguageSelector) {
         mainLanguageSelector.addEventListener('change', function() {
             alert(`In full implementation, UI would switch to ${this.value.toUpperCase()}`);
         });
     }
 
-    // Main File Upload Function
+   
     async function handleFileUpload() {
         const file = fileInput.files[0];
         if (!file) {
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Text Processing Functions
+    
     function isHindi(text) {
         const hindiRegex = /[\u0900-\u097F]/;
         return hindiRegex.test(text);
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
 
-    // Chatbot Functions
+   
     function initializeChatbot() {
         const toggleBtn = document.getElementById('toggle-chatbot');
         if (toggleBtn) {
@@ -191,14 +191,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const chatbotSend = document.getElementById('chatbot-send');
         const closeChatbot = document.getElementById('close-chatbot');
 
-        // Show chatbot
+       
         chatbotContainer.classList.remove('chatbot-hidden');
         chatbotContainer.classList.add('chatbot-visible');
 
-        // Add welcome message
+        
         addBotMessage("Hello! I'm your VakilAI assistant. Ask me anything about the document you just uploaded.");
 
-        // Event listeners
+        
         chatbotSend.addEventListener('click', sendMessage);
         chatbotInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
         closeChatbot.addEventListener('click', () => toggleChatbot(false));
@@ -261,16 +261,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Display Analysis Results
+   
     async function displayAnalysis(result) {
         console.log("Received Result:", result);
 
-        // Update document type and language
+        
         if (documentTypeDisplay) {
             documentTypeDisplay.textContent = `Document Type: ${result.type || 'Not Detected'} | Language: ${result.language_name || 'Unknown'} (${result.language_code || 'unknown'})`;
         }
 
-        // Update document preview
+       
         if (documentPreview) {
             const formattedText = formatDocumentText(result.text, result.type);
             documentPreview.innerHTML = `
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // Update analysis sidebar
+        
         if (analysisSidebar) {
             const parsedAnalysis = parseAnalysis(result.analysis);
             analysisSidebar.innerHTML = `
@@ -310,15 +310,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            // Set up event listeners
+            
             setupPdfDownload();
             setupVoiceButton();
         }
 
-        // Initialize chatbot with document text
+        
         setupChatbot(result.text);
 
-        // Show analysis section
+        
         if (analysisContainer) {
             analysisContainer.style.display = 'block';
             window.scrollTo({
@@ -340,11 +340,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
                 btn.disabled = true;
                 
-                // Safely get the language value with fallback
+                
                 const languageSelector = document.getElementById('main-language');
                 const selectedLanguage = languageSelector ? languageSelector.value : 'en';
                 
-                // Get all the necessary data for the PDF
+                
                 const analysisData = {
                     analysis: document.querySelector('.analysis-sidebar')?.innerHTML || '',
                     summary: document.getElementById('summary-content')?.innerText || '',
@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     language: selectedLanguage
                 };
     
-                // Make the request to generate PDF
+               
                 const response = await fetch('/generate-pdf', {
                     method: 'POST',
                     headers: { 
@@ -366,18 +366,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
     
-                // Create blob from response
+               
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 
-                // Create download link and trigger click
+                
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'vakilai-legal-analysis.pdf';
                 document.body.appendChild(a);
                 a.click();
                 
-                // Cleanup
+               
                 setTimeout(() => {
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
