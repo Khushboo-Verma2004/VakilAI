@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lawyer Finder</title>
+  <!-- Leaflet CSS/JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="another.css" />
+</head>
+<body>
+  <header role="banner">
+    <div class="navbar">
+        <div class="logo" role="img" aria-label="VakilAI Logo">
+            <i class="fas fa-balance-scale" aria-hidden="true"></i>
+            VakilAI
+        </div>
+        <nav aria-label="Main navigation">
+            <div class="nav-links">
+                <a href="#home" aria-current="page" data-translate="nav.home">Home</a>
+                <a href="#how-it-works" data-translate="nav.how_it_works">How It Works</a>
+                <a href="#resources" data-translate="nav.resources">Legal Resources</a>
+                <select class="language-selector" id="main-language" aria-label="Select interface language">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="ta">தமிழ் (Tamil)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="mr">मराठी (Marathi)</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
+                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                    <option value="ml">മലയാളം (Malayalam)</option>
+                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="or">ଓଡ଼ିଆ (Odia)</option>
+                    <option value="as">অসমীয়া (Assamese)</option>
+                    <option value="sa">संस्कृतम् (Sanskrit)</option>
+                    <option value="ks">کٲشُر (Kashmiri)</option>
+                    <option value="ne">नेपाली (Nepali)</option>
+                    <option value="sd">सिन्धी (Sindhi)</option>
+                    <option value="ur">اردو (Urdu)</option>
+                    <option value="kok">कोंकणी (Konkani)</option>
+                    <option value="mni">ꯃꯤꯇꯩꯂꯣꯟ (Manipuri)</option>
+                    <option value="doi">डोगरी (Dogri)</option>
+                    <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+                    <option value="brx">बड़ो (Bodo)</option>
+                    <option value="mai">मैथिली (Maithili)</option>
+                </select>
+            </div>
+        </nav>
+        <button class="mobile-menu-btn" aria-label="Mobile menu" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+  </header>
+  <h1> Find Lawyers</h1>
+  <div class="search-bar">
+    <input type="text" id="locationInput" placeholder="City or Address">
+    <select id="specialtySelect">
+    <option value="">All Specialties</option>
+    <option value="Criminal">Criminal Defense</option>
+    <option value="Family">Family Law</option>
+    </select>
+    <button onclick="findLawyers()">Search</button>
+  </div>
+  
+  <div id="results-container">
+    <div id="results"></div>
+    <div id="map"></div>
+  </div>
+  <footer role="contentinfo">
+    <div class="footer-content">
+        <div class="logo" role="img" aria-label="VakilAI Logo">
+            <i class="fas fa-balance-scale" aria-hidden="true"></i>
+            VakilAI
+        </div>
+        <p data-translate="footer.tagline">Democratizing legal access through AI technology</p>
+        <div class="footer-links" role="navigation" aria-label="Footer navigation">
+            <a href="#about" data-translate="footer.about">About Us</a>
+            <a href="#contact" data-translate="footer.contact">Contact</a>
+        </div>
+        <div class="language-links" role="navigation" aria-label="Language selection">
+            <h3 data-translate="footer.available">Available in:</h3>
+            <div class="language-grid" id="footer-languages">
+                <!-- AI will populate this based on supported languages -->
+            </div>
+        </div>
+    </div>
+  </footer>
+
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();  // Initialize map AFTER DOM is ready
+});
+
+function initMap() {
+  map = L.map('map').setView([51.505, -0.09], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+}
+async function searchLawyers(location = '', specialization = '') {
+  try {
+    let url = '/api/lawyers';
+    const params = new URLSearchParams();
+    
+    if (location) params.append('location', location);
+    if (specialization) params.append('specialization', specialization);
+    
+    if (params.toString()) url += `?${params.toString()}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to search');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Search error:', error);
+    throw error;
+  }
+}
+
+function updateMap(lawyers) {
+  // Clear old markers
+  map.eachLayer(layer => {
+    if (layer instanceof L.Marker) map.removeLayer(layer);
+  });
+
+  // Add new markers
+  lawyers.forEach(lawyer => {
+    if (lawyer.lat && lawyer.lng) {
+      L.marker([lawyer.lat, lawyer.lng])
+        .addTo(map)
+        .bindPopup(`
+          <b>${lawyer.name}</b><br>
+          ${lawyer.address}<br>
+          ${lawyer.specialty ? `Specialty: ${lawyer.specialty}` : ''}
+        `);
+    }
+  });
+  
+  
+  // Zoom to markers
+  if (lawyers.length > 0 && lawyers[0].lat) {
+    const bounds = L.latLngBounds(lawyers.map(l => [l.lat, l.lng]));
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }
+}
+async function findLawyers() {
+    const location = document.getElementById('locationInput').value;
+    const specialty = document.getElementById('specialtySelect').value;
+    const resultsDiv = document.getElementById('results');
+    
+    // Show loading state
+    resultsDiv.innerHTML = '<p class="loading">Searching for lawyers...</p>';
+    
+    try {
+        // Make API request to your backend
+        const response = await fetch(`http://localhost:3000/api/lawyers?location=${encodeURIComponent(location)}&specialization=${encodeURIComponent(specialty)}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.length === 0) {
+            resultsDiv.innerHTML = `
+                <div class="error-message">
+                    No lawyers found matching your criteria.
+                    <p>Try searching different locations like: Delhi, Mumbai, Bengaluru, Kolkata</p>
+                </div>
+            `;
+        } else {
+            displayResults(data);
+        }
+    } catch (error) {
+        console.error('Error fetching lawyers:', error);
+        resultsDiv.innerHTML = `
+            <div class="error-message">
+                Failed to search: ${error.message}
+                <p>Please ensure:
+                    <ul>
+                        <li>Backend server is running</li>
+                        <li>You're connected to the internet</li>
+                        <li>Try again later</li>
+                    </ul>
+                </p>
+            </div>
+        `;
+    }
+}
+
+function displayResults(lawyers) {
+    const resultsDiv = document.getElementById('results');
+    
+    resultsDiv.innerHTML = `
+        <h2>${lawyers.length} Lawyers Found</h2>
+        ${lawyers.map(lawyer => `
+            <div class="lawyer-card">
+                <h3>${lawyer.name}</h3>
+                <p><strong>Specialization:</strong> ${lawyer.specialization}</p>
+                <p><strong>Location:</strong> ${lawyer.location.city}, ${lawyer.location.state}</p>
+                <p><strong>Experience:</strong> ${lawyer.experience_years} years</p>
+                <p><strong>Contact:</strong> ${lawyer.contact.phone} | ${lawyer.contact.email}</p>
+                <p><strong>Fees:</strong> ₹${lawyer.fees} per consultation</p>
+                <p><strong>Rating:</strong> ${lawyer.rating}/5</p>
+            </div>
+        `).join('')}
+    `;
+    
+    
+    
+}
+
+  </script>
+</body>
+</html>
